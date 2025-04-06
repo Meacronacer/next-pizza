@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     #installed apps
     'accounts',
-    #'products',
+    'products',
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',  # если потребуется черный список токенов
 ]
