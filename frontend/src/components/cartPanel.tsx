@@ -58,7 +58,7 @@ const CartPanel: React.FC<CartPanelProps> = ({ open, onClose, cartItems }) => {
       >
         {/* Заголовок */}
         <div className="p-4 border-b">
-          <h2 className="text-lg font-bold">Корзина</h2>
+          <h2 className="text-lg text-black font-bold">Корзина</h2>
         </div>
         {/* Список товаров */}
         <div className="p-4 overflow-y-auto h-full">

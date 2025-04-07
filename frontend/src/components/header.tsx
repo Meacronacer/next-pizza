@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useClickOutside } from "@/hooks/useClickOutside";
 import CartPanel from "./cartPanel";
+import { LinkTo } from "@/utils/navigations";
+import { useRouter } from "next/navigation";
 
 export default function Header() {
   const [mounted, setMounted] = useState(false);
@@ -12,6 +14,7 @@ export default function Header() {
   const [language, setLanguage] = useState("en"); // en или uk
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [cartModal, setCartModal] = useState(false);
+  const router = useRouter();
 
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
@@ -50,7 +53,7 @@ export default function Header() {
         }`}
       >
         {/* Логотип */}
-        <Link href="/">
+        <Link href={LinkTo.home}>
           <h1 className="cursor-pointer font-bold">NEXT PIZZA</h1>
         </Link>
 
@@ -105,7 +108,10 @@ export default function Header() {
               </span>
             </button>
           ) : (
-            <button className="bg-orange-500 hover:bg-orange-700 cursor-pointer duration-200 text-white px-4 py-2 rounded-lg">
+            <button
+              onClick={() => router.push(LinkTo.login)}
+              className="bg-orange-500 hover:bg-orange-700 cursor-pointer duration-200 text-white px-4 py-2 rounded-lg"
+            >
               Войти
             </button>
           )}
