@@ -1,5 +1,36 @@
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from .serializers import RegisterSerializer
+from .sendEmail import send_confirmation_email, verify_confirmation_token
+from django.shortcuts import get_object_or_404
+from .models import AppUser 
+
+
+class RegisterView(APIView):
+    def post(self, request):
+        serializer = RegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            send_confirmation_email(user)
+            return Response({"message": "Пользователь успешно зарегистрирован. Проверьте почту для подтверждения."},
+                            status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+class ConfirmEmailView(APIView):
+    def get(self, request, token):
+        email = verify_confirmation_token(token)
+        if not email:
+            return Response({"error": "Неверный или просроченный токен."}, status=status.HTTP_400_BAD_REQUEST)
+        user = get_object_or_404(AppUser, email=email)
+        user.is_verified = True
+        user.save()
+        return Response({"message": "Email успешно подтвержден."})
+
+
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     """

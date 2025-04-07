@@ -1,103 +1,134 @@
-import Image from "next/image";
+// pages/index.js
+import React from "react";
+
+const products = {
+  pizzas: [
+    { id: 1, name: "Маргарита", image: "/images/margarita.jpg", price: 10 },
+    { id: 2, name: "Пепперони", image: "/images/pepperoni.jpg", price: 12 },
+    { id: 3, name: "Четыре сыра", image: "/images/fourcheese.jpg", price: 14 },
+    { id: 4, name: "Гавайская", image: "/images/hawaiian.jpg", price: 11 },
+    { id: 5, name: "Мясная", image: "/images/meatlover.jpg", price: 15 },
+    { id: 6, name: "Овощная", image: "/images/vegetarian.jpg", price: 9 },
+    { id: 7, name: "Диабло", image: "/images/diablo.jpg", price: 13 },
+    {
+      id: 8,
+      name: "С морепродуктами",
+      image: "/images/seafood.jpg",
+      price: 16,
+    },
+  ],
+  zakuski: [
+    { id: 1, name: "Крылышки", image: "/images/wings.jpg", price: 8 },
+    { id: 2, name: "Начос", image: "/images/nachos.jpg", price: 7 },
+    {
+      id: 3,
+      name: "Сырные палочки",
+      image: "/images/cheese-sticks.jpg",
+      price: 6,
+    },
+    { id: 4, name: "Салат Цезарь", image: "/images/caesar.jpg", price: 9 },
+  ],
+  drinks: [
+    { id: 1, name: "Кола", image: "/images/cola.jpg", price: 2 },
+    { id: 2, name: "Спрайт", image: "/images/sprite.jpg", price: 2 },
+    { id: 3, name: "Фанта", image: "/images/fanta.jpg", price: 2 },
+    { id: 4, name: "Лимонад", image: "/images/lemonade.jpg", price: 2 },
+  ],
+  cocktails: [
+    { id: 1, name: "Мохито", image: "/images/mojito.jpg", price: 5 },
+    {
+      id: 2,
+      name: "Маргарита",
+      image: "/images/margarita-cocktail.jpg",
+      price: 6,
+    },
+    {
+      id: 3,
+      name: "Космополитен",
+      image: "/images/cosmopolitan.jpg",
+      price: 7,
+    },
+    { id: 4, name: "Пина Колада", image: "/images/pinacolada.jpg", price: 6 },
+  ],
+  coffee: [
+    { id: 1, name: "Эспрессо", image: "/images/espresso.jpg", price: 3 },
+    { id: 2, name: "Латте", image: "/images/latte.jpg", price: 4 },
+    { id: 3, name: "Капучино", image: "/images/cappuccino.jpg", price: 4 },
+    { id: 4, name: "Американо", image: "/images/americano.jpg", price: 3 },
+  ],
+  desserts: [
+    { id: 1, name: "Чизкейк", image: "/images/cheesecake.jpg", price: 5 },
+    { id: 2, name: "Тирамису", image: "/images/tiramisu.jpg", price: 6 },
+    { id: 3, name: "Мороженое", image: "/images/icecream.jpg", price: 4 },
+    { id: 4, name: "Эклер", image: "/images/eclair.jpg", price: 4 },
+  ],
+  sauces: [
+    { id: 1, name: "Чесночный", image: "/images/garlic-sauce.jpg", price: 1 },
+    { id: 2, name: "Барбекю", image: "/images/bbq-sauce.jpg", price: 1 },
+    { id: 3, name: "Сырный", image: "/images/cheese-sauce.jpg", price: 1 },
+    { id: 4, name: "Острый", image: "/images/spicy-sauce.jpg", price: 1 },
+  ],
+};
+
+function ProductCard({ product }: any) {
+  return (
+    <div className="border rounded-lg p-4 text-center transition-shadow hover:shadow-lg">
+      <img
+        src={product.image}
+        alt={product.name}
+        className="mx-auto mb-4 rounded"
+      />
+      <h3 className="text-lg font-medium">{product.name}</h3>
+      <p className="text-sm text-gray-600">{product.price} $</p>
+    </div>
+  );
+}
 
 export default function Home() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="max-w-7xl w-full mx-auto p-4">
+      {Object.entries(products).map(([category, items]) => (
+        <section key={category} className="mb-10">
+          <h2 className="text-2xl font-bold mb-4 capitalize">{category}</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {items.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        </section>
+      ))}
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      <div className="my-24 px-2">
+        <h5 className="font-bold text-[34px]">Delivery and payment</h5>
+
+        <div className="flex gap-x-10 mt-10">
+          <div className="flex flex-col gap-y-4">
+            <h6 className="text-primary font-bold text-[20px]">
+              60 minutes or free pizza
+            </h6>
+            <p className="max-w-[450px]">
+              If we fail to deliver in 60 minutes, you will receive an excused
+              pizza. It can be added to one of the following orders.
+            </p>
+            <span>All prices on the menu do not include discounts..</span>
+          </div>
+          <div className="flex flex-wrap gap-x-10">
+            <div>
+              <span className="text-primary font-bold text-[20px]">
+                from 6.90 $
+              </span>
+              <p>Minimum delivery amount</p>
+            </div>
+            <div>
+              <span className="text-primary font-bold text-[20px]">
+                100.00 $
+              </span>
+              <p>Maximum amount when paying in cash</p>
+              <p>Product images may differ from the products in your order.</p>
+            </div>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
     </div>
   );
 }
