@@ -3,6 +3,8 @@ import "./globals.css";
 import Header from "@/components/header";
 import { ThemeProvider } from "next-themes";
 import Footer from "@/components/footer";
+import ReactQueryProvider from "@/providers/reactQueryProvider";
+import ScrollToTop from "@/components/scrollToTop";
 
 export const metadata: Metadata = {
   title: "Next Pizza | Home",
@@ -16,12 +18,17 @@ export default function RootLayout({
 }>) {
   return (
     <html suppressHydrationWarning lang="en">
-      <body className="max-w-7xl antialiased mx-auto flex flex-col justify-center items-center overflow-x-hidden">
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <Header />
-          {children}
-          <Footer />
-        </ThemeProvider>
+      <body className="overflow-x-hidden">
+        <main className="max-w-7xl antialiased mx-auto flex flex-col justify-center items-center overflow-x-hidden">
+          <ReactQueryProvider>
+            <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+              <Header />
+              {children}
+              <Footer />
+            </ThemeProvider>
+          </ReactQueryProvider>
+          <ScrollToTop />
+        </main>
       </body>
     </html>
   );

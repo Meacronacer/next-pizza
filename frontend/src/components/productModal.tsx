@@ -1,0 +1,218 @@
+import { Iproduct } from "@/@types/product";
+import { useProductDetail } from "@/api/fetchProducts";
+import { useAddToCart } from "@/hooks/useCart";
+import React, { useEffect, useState } from "react";
+import ExtraOptionItem, { ExtraOptionType } from "./extraOptionItem";
+import Image from "next/image";
+import { enableScroll } from "@/utils/scrollbar";
+
+interface ModalProps {
+  product: Iproduct | null;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+interface VariantType {
+  id: number;
+  size: number;
+  price: number;
+}
+
+export interface ProductDetailData {
+  variants: VariantType[];
+  extra_options: ExtraOptionType[];
+}
+
+const ProductModal: React.FC<ModalProps> = ({ product, isOpen, onClose }) => {
+  const { data, isLoading, isError } = useProductDetail(
+    product?.id ? product.id.toString() : ""
+  );
+  const productData = data as ProductDetailData;
+
+  // Выбранный вариант (по дефолту первый)
+  const [selectedVariantIndex, setSelectedVariantIndex] = useState<number>(0);
+  // Выбранный тип теста (например, "traditional" или "thin")
+  const [selectedDoughType, setSelectedDoughType] = useState<
+    "traditional" | "thin"
+  >("traditional");
+  // Массив id выбранных дополнительных опций
+  const [selectedExtras, setSelectedExtras] = useState<number[]>([]);
+
+  // Сброс значений при закрытии модального окна
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedVariantIndex(0);
+      setSelectedDoughType("traditional");
+      setSelectedExtras([]);
+    }
+  }, [isOpen]);
+
+  const handleExtraToggle = (extraId: number) => {
+    setSelectedExtras((prev) =>
+      prev.includes(extraId)
+        ? prev.filter((id) => id !== extraId)
+        : [...prev, extraId]
+    );
+  };
+
+  const calculateTotalPrice = (): number => {
+    const basePrice = Number(
+      productData?.variants[selectedVariantIndex]?.price ||
+        product?.price_from ||
+        0
+    );
+    const extrasPrice = productData?.extra_options.reduce((sum, extra) => {
+      return (
+        sum + (selectedExtras.includes(extra.id) ? Number(extra.price) : 0)
+      );
+    }, 0);
+    return basePrice + extrasPrice;
+  };
+
+  console.log(productData);
+
+  return (
+    <div
+      onClick={() => {
+        enableScroll();
+        onClose();
+      }}
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 transition-colors duration-300 ${
+        isOpen ? "visible" : "invisible"
+      }`}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className={`${
+          isOpen ? "visible scale-100 opacity-100" : "scale-125 opacity-0"
+        } relative w-full max-w-4xl bg-white dark:bg-gray-900 rounded-xl shadow-xl transform transition-all duration-200 overflow-y-auto max-h-[90vh]`}
+      >
+        {/* Кнопка закрытия */}
+        <div
+          onClick={() => {
+            enableScroll();
+            onClose();
+          }}
+          className="absolute px-4 py-2 right-0.5 top-1 hover:bg-black/90 cursor-pointer duration-200 rounded-full"
+        >
+          <button className="text-gray-500 cursor-pointer dark:text-gray-300 hover:text-gray-700 dark:hover:text-gray-100 transition-colors">
+            x
+          </button>
+        </div>
+
+        <div className="flex flex-col md:flex-row">
+          {/* Левая колонка – изображение продукта */}
+          <div className="md:w-1/2 p-4 flex justify-center items-center h-auto md:h-[500px]">
+            <Image
+              width={500}
+              height={500}
+              src={product?.img_url || "/pizza.svg"}
+              alt={product?.name || "product"}
+              className="w-full rounded-md sm:ml-10 ml-5 object-cover"
+            />
+          </div>
+
+          {/* Правая колонка – информация */}
+          <div className="md:w-1/2 py-6 px-3.5 pt-12 flex flex-col h-auto md:h-[500px]">
+            {/* Прокручиваемая область */}
+            <div className="overflow-y-auto flex-grow pr-4">
+              <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">
+                {product?.name}
+              </h1>
+              <p className="mt-2 text-gray-600 dark:text-gray-300">
+                {product?.description}
+              </p>
+
+              {/* Варианты продукта (размеры) как табы */}
+              {productData?.variants &&
+                productData?.variants?.length > 0 &&
+                productData.variants.some(
+                  (variant) => variant.size != null
+                ) && (
+                  <div className="mt-2">
+                    <h2 className="text-lg font-medium text-gray-700 dark:text-gray-200">
+                      Select Size
+                    </h2>
+                    <div className="flex  gap-3 mt-2 border-b border-gray-200 dark:border-gray-700">
+                      {productData.variants.map((variant, index) => (
+                        <button
+                          key={variant.id}
+                          onClick={() => setSelectedVariantIndex(index)}
+                          className={`px-4 py-2 w-full rounded-3xl  border-b-2 transition-colors duration-300 ${
+                            selectedVariantIndex === index
+                              ? "border-blue-500 text-white bg-blue-500"
+                              : "border-transparent text-gray-500 cursor-pointer hover:text-blue-500 hover:border-blue-500"
+                          }`}
+                        >
+                          {variant.size} cm
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+              {/* Тип теста как табы */}
+              {product?.product_type.toLocaleLowerCase() === "pizzas" && (
+                <div className="mt-6">
+                  <h2 className="text-lg font-medium text-gray-700 dark:text-gray-200">
+                    Dough Type
+                  </h2>
+                  <div className="flex rounded-e-3xl gap-3 mt-2 border-b border-gray-200 dark:border-gray-700">
+                    {(["traditional", "thin"] as const).map((type) => (
+                      <button
+                        key={type}
+                        onClick={() => setSelectedDoughType(type)}
+                        className={`px-4 py-2 w-full rounded-3xl border-b-2 transition-colors duration-300 ${
+                          selectedDoughType === type
+                            ? "border-blue-500 text-white bg-blue-500"
+                            : "border-transparent text-gray-500 cursor-pointer hover:text-blue-500 hover:border-blue-500"
+                        }`}
+                      >
+                        {type.charAt(0).toUpperCase() + type.slice(1)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Дополнительные опции */}
+              {productData?.extra_options &&
+                productData.extra_options.length > 0 && (
+                  <div className="mt-6 pb-6">
+                    <h2 className="text-lg font-medium text-gray-700 dark:text-gray-200">
+                      Extra Options
+                    </h2>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-2 px-1">
+                      {productData.extra_options.map((extra) => (
+                        <ExtraOptionItem
+                          key={extra.id}
+                          extraOption={extra}
+                          isSelected={selectedExtras.includes(extra.id)}
+                          onToggle={() => handleExtraToggle(extra.id)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
+            </div>
+
+            {/* Футер */}
+            <div className="mt-4">
+              <div className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">
+                Total Price:{" "}
+                <span className="text-green-400">
+                  ${calculateTotalPrice().toFixed(2)}
+                </span>
+              </div>
+              <button className="w-full cursor-pointer bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg transition-colors">
+                Add to Cart
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ProductModal;

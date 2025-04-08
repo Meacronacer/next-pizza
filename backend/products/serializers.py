@@ -1,3 +1,5 @@
+# serializers.py
+
 from rest_framework import serializers
 from .models import Product, ProductVariant, ExtraOption, Ingredient
 
@@ -6,15 +8,15 @@ class ExtraOptionSerializer(serializers.ModelSerializer):
         model = ExtraOption
         fields = '__all__'
 
+# Сериализатор для варианта продукта
 class ProductVariantSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductVariant
-        fields = ['id', 'size', 'grams', 'price']
+        fields = ['id', 'size', 'price']  # Если нужно добавить другие поля, добавьте их сюда
 
+# Основной сериализатор продукта, как у вас
 class ProductSerializer(serializers.ModelSerializer):
-    # Вложенная сериализация для вариантов и доп. опций
-    variants = ProductVariantSerializer(many=True, read_only=True)
-    extra_options = ExtraOptionSerializer(many=True, read_only=True)
+    price_from = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
@@ -23,14 +25,33 @@ class ProductSerializer(serializers.ModelSerializer):
             'name', 
             'product_type', 
             'img_url', 
-            'rating', 
             'description', 
             'extra_info', 
-            'variants',
-            'extra_options'
+            'price_from',
         ]
 
-class IngredientSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Ingredient
-        fields = '__all__'
+    def get_price_from(self, obj):
+        variants = obj.variants.all()
+        if variants.exists():
+            return min(variant.price for variant in variants)
+        return None
+
+# Сериализатор для деталей продукта с вариантами, отсортированными по цене
+class ProductDetailSerializer(ProductSerializer):
+    variants = serializers.SerializerMethodField()
+    extra_options = serializers.SerializerMethodField()
+
+    class Meta(ProductSerializer.Meta):
+        fields = ['variants', 'extra_options']
+
+    
+    def get_extra_options(self, obj):
+        options = obj.extra_options.all()
+        return ExtraOptionSerializer(options, many=True).data
+
+    def get_variants(self, obj):
+        # Получаем все варианты для данного продукта и сортируем их по цене от меньшей к большей
+        variants = obj.variants.all().order_by('price')
+        return ProductVariantSerializer(variants, many=True).data
+
+

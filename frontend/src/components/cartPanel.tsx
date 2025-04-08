@@ -1,3 +1,5 @@
+import { useCart } from "@/hooks/useCart";
+import useClickOutside from "@/hooks/useClickOutside";
 import React, { useEffect, useRef } from "react";
 
 interface CartItem {
@@ -15,60 +17,40 @@ interface CartPanelProps {
 }
 
 const CartPanel: React.FC<CartPanelProps> = ({ open, onClose, cartItems }) => {
-  const panelRef = useRef<HTMLDivElement>(null);
-
-  // Обработка клика вне панели для закрытия корзины
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        panelRef.current &&
-        !panelRef.current.contains(event.target as Node)
-      ) {
-        onClose();
-      }
-    };
-
-    if (open) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [open, onClose]);
+  const { data, isLoading, error } = useCart();
 
   return (
     <div
-      className={`fixed inset-0 z-50 h-dvh transition-all duration-300 ${
-        open ? "visible" : "invisible"
-      }`}
+      className={`fixed inset-0 h-dvh z-50 ${open ? "visible" : "invisible"}`}
     >
       {/* Overlay */}
       <div
-        className={`fixed inset-0 bg-black h-dvh opacity-50 transition-transform duration-300  ${
-          open ? "translate-x-0" : "translate-x-full"
+        className={`fixed inset-0 h-dvh bg-black transition-all ${
+          open ? "opacity-50" : "opacity-0"
         }`}
         onClick={onClose}
-      ></div>
-      {/* Боковая панель корзины */}
+      />
+
+      {/* Панель корзины */}
       <div
-        ref={panelRef}
-        className={`absolute right-0 top-0 h-full w-80 bg-white shadow-xl transform transition-transform duration-300 ${
+        className={`fixed right-0 top-0 h-dvh w-80 bg-white shadow-xl transform transition-all duration-300 flex flex-col ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
         {/* Заголовок */}
-        <div className="p-4 border-b">
+        <div className="p-4 border-b flex-shrink-0">
           <h2 className="text-lg text-black font-bold">Корзина</h2>
         </div>
-        {/* Список товаров */}
-        <div className="p-4 overflow-y-auto h-full">
+
+        {/* Список товаров с прокруткой */}
+        <div className="flex-1 overflow-y-auto px-4">
           {cartItems.length === 0 ? (
-            <p className="text-gray-500">Ваша корзина пуста</p>
+            <p className="text-gray-500 py-4">Ваша корзина пуста</p>
           ) : (
             cartItems.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center justify-between py-2 border-b"
+                className="flex items-center justify-between py-4 border-b"
               >
                 <div className="flex items-center space-x-4">
                   <img
@@ -83,7 +65,6 @@ const CartPanel: React.FC<CartPanelProps> = ({ open, onClose, cartItems }) => {
                     </p>
                   </div>
                 </div>
-                {/* Кнопки для изменения количества */}
                 <div className="flex items-center space-x-2">
                   <button className="px-2 py-1 bg-gray-200 rounded">-</button>
                   <span>{item.quantity}</span>
@@ -93,9 +74,10 @@ const CartPanel: React.FC<CartPanelProps> = ({ open, onClose, cartItems }) => {
             ))
           )}
         </div>
-        {/* Футер с кнопкой оформления заказа */}
-        <div className="p-4 border-t">
-          <button className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded">
+
+        {/* Фиксированный футер */}
+        <div className="p-4 border-t flex-shrink-0 bg-white">
+          <button className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg transition-colors">
             Оформить заказ
           </button>
         </div>

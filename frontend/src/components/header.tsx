@@ -6,6 +6,7 @@ import { useClickOutside } from "@/hooks/useClickOutside";
 import CartPanel from "./cartPanel";
 import { LinkTo } from "@/utils/navigations";
 import { useRouter } from "next/navigation";
+import { disableScroll, enableScroll } from "@/utils/scrollbar";
 
 export default function Header() {
   const [mounted, setMounted] = useState(false);
@@ -45,118 +46,124 @@ export default function Header() {
   });
 
   return (
-    <header className="border-b-2 w-full shadow-2xs backdrop-blur-2xl border-[#33353F] sticky top-0 z-10 transition-all duration-300">
-      {/* Основной контент Header */}
-      <div
-        className={`w-full mx-auto p-4 flex items-center justify-between transition-opacity duration-300 ${
-          mobileSearchOpen ? "opacity-0 pointer-events-none" : "opacity-100"
-        }`}
-      >
-        {/* Логотип */}
-        <Link href={LinkTo.home}>
-          <h1 className="cursor-pointer font-bold">NEXT PIZZA</h1>
-        </Link>
-
-        {/* Центр: поиск для десктопа и иконка для мобильных */}
-        <div className="flex-1 mx-4">
-          <div className="hidden md:block">
-            <input
-              type="text"
-              placeholder="Поиск"
-              className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-          <div className="block md:hidden">
-            <button
-              onClick={() => setMobileSearchOpen(true)}
-              className="text-xl"
-            >
-              🔍
-            </button>
-          </div>
-        </div>
-
-        {/* Элементы управления справа */}
-        <div className="flex-shrink-0 flex items-center gap-x-3">
-          {!mounted ? (
-            <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse" />
-          ) : (
-            <button
-              onClick={toggleTheme}
-              className="text-xl  dark:hover:bg-white/30 hover:bg-black/50 duration-200 p-1 cursor-pointer"
-            >
-              {theme === "light" ? "🌙" : "☀️"}
-            </button>
-          )}
-          {/* Переключатель языка скрыт на мобильных */}
-          <button
-            onClick={toggleLanguage}
-            className="text-sm border rounded px-2 py-1 cursor-pointer"
-          >
-            {language === "en" ? "EN" : "UK"}
-          </button>
-          <button
-            onClick={() => setCartModal(true)}
-            className="text-xl dark:hover:bg-white/30 hover:bg-black/50 duration-200 p-1 cursor-pointer"
-          >
-            🛒
-          </button>
-          {isAuthorized ? (
-            <button className="p-2 rounded-full border">
-              <span role="img" aria-label="User">
-                👤
-              </span>
-            </button>
-          ) : (
-            <button
-              onClick={() => router.push(LinkTo.login)}
-              className="bg-orange-500 hover:bg-orange-700 cursor-pointer duration-200 text-white px-4 py-2 rounded-lg"
-            >
-              Войти
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Анимированный блок поиска для мобильных */}
-      <div
-        ref={searchRef}
-        className="absolute inset-0 h-18 flex items-center px-4 transition-transform duration-200 md:hidden"
-        style={{
-          transform: mobileSearchOpen ? "translateX(0)" : "translateX(-100%)",
-        }}
-      >
-        <input
-          autoFocus
-          type="text"
-          placeholder="Поиск"
-          className="flex-1 border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <button
-          onClick={() => setMobileSearchOpen(false)}
-          className="ml-2 text-xl"
+    <header className="w-full dark:bg-[#0a0a0a]/50 dark:backdrop-blur-3xl fixed top-0 z-30 transition-all duration-300">
+      {" "}
+      <div className="max-w-7xl mx-auto border-b-2 backdrop-blur-3xl border-white/40">
+        {/* Основной контент Header */}
+        <div
+          className={`w-full mx-auto p-4 flex items-center justify-between transition-opacity duration-300 ${
+            mobileSearchOpen ? "opacity-0 pointer-events-none" : "opacity-100"
+          }`}
         >
-          ✖️
-        </button>
-      </div>
+          {/* Логотип */}
+          <Link href={LinkTo.home}>
+            <h1 className="cursor-pointer font-bold">NEXT PIZZA</h1>
+          </Link>
 
-      {/* Нижняя навигационная панель */}
-      <nav className="ml-4">
-        <div className="container mx-auto py-2 flex space-x-4 overflow-x-auto">
-          {navItems.map((item) => (
-            <a
-              key={item.id}
-              href={`#${item.id}`}
-              className="whitespace-nowrap text-sm hover:underline hover:text-purple-500"
+          {/* Центр: поиск для десктопа и иконка для мобильных */}
+          <div className="flex-1 mx-4">
+            <div className="hidden md:block">
+              <input
+                type="text"
+                placeholder="Поиск"
+                className="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div className="block md:hidden">
+              <button
+                onClick={() => setMobileSearchOpen(true)}
+                className="text-xl"
+              >
+                🔍
+              </button>
+            </div>
+          </div>
+
+          {/* Элементы управления справа */}
+          <div className="flex-shrink-0 flex items-center gap-x-3">
+            {!mounted ? (
+              <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse" />
+            ) : (
+              <button
+                onClick={toggleTheme}
+                className="text-xl dark:hover:bg-white/30 hover:bg-black/50 duration-200 p-1 cursor-pointer"
+              >
+                {theme === "light" ? "🌙" : "☀️"}
+              </button>
+            )}
+            {/* Переключатель языка */}
+            <button
+              onClick={toggleLanguage}
+              className="text-sm border rounded px-2 py-1 cursor-pointer"
             >
-              {item.label}
-            </a>
-          ))}
+              {language === "en" ? "EN" : "UK"}
+            </button>
+            <button
+              onClick={() => {
+                disableScroll();
+                setCartModal(true);
+              }}
+              className="text-xl dark:hover:bg-white/30 hover:bg-black/50 duration-200 p-1 cursor-pointer"
+            >
+              🛒
+            </button>
+            {isAuthorized ? (
+              <button className="p-2 rounded-full border">
+                <span role="img" aria-label="User">
+                  👤
+                </span>
+              </button>
+            ) : (
+              <button
+                onClick={() => router.push(LinkTo.login)}
+                className="bg-orange-500 hover:bg-orange-700 cursor-pointer duration-200 text-white px-4 py-2 rounded-lg"
+              >
+                Войти
+              </button>
+            )}
+          </div>
         </div>
-      </nav>
+        {/* Анимированный блок поиска для мобильных */}
+        <div
+          ref={searchRef}
+          className={`absolute top-0 left-0 right-0 h-16 flex items-center px-4 transition-transform duration-200 md:hidden ${
+            mobileSearchOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          <input
+            autoFocus
+            type="text"
+            placeholder="Поиск"
+            className="flex-1 border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <button
+            onClick={() => setMobileSearchOpen(false)}
+            className="ml-2 text-xl"
+          >
+            ✖️
+          </button>
+        </div>
+        {/* Нижняя навигационная панель */}
+        <nav className="ml-4">
+          <div className="container mx-auto py-2 flex space-x-4 overflow-x-auto">
+            {navItems.map((item) => (
+              <a
+                key={item.id}
+                href={`#${item.id}`}
+                className="whitespace-nowrap text-sm hover:underline hover:text-purple-500"
+              >
+                {item.label}
+              </a>
+            ))}
+          </div>
+        </nav>
+      </div>
       <CartPanel
         open={cartModal}
-        onClose={() => setCartModal(false)}
+        onClose={() => {
+          enableScroll();
+          setCartModal(false);
+        }}
         cartItems={[]}
       />
     </header>
