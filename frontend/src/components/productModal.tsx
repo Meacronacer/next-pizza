@@ -1,6 +1,6 @@
 import { Iproduct } from "@/@types/product";
-import { useProductDetail } from "@/api/fetchProducts";
-import { useAddToCart } from "@/hooks/useCart";
+import { useProductDetail } from "@/api/productsApi";
+import { useAddToCart, useEditCartItem } from "@/hooks/useCart";
 import React, { useEffect, useState } from "react";
 import ExtraOptionItem, { ExtraOptionType } from "./extraOptionItem";
 import Image from "next/image";
@@ -10,6 +10,9 @@ interface ModalProps {
   product: Iproduct | null;
   isOpen: boolean;
   onClose: () => void;
+  extras?: ExtraOptionType[];
+  variant_id?: number;
+  changeMode?: boolean;
 }
 
 interface VariantType {
@@ -23,11 +26,24 @@ export interface ProductDetailData {
   extra_options: ExtraOptionType[];
 }
 
-const ProductModal: React.FC<ModalProps> = ({ product, isOpen, onClose }) => {
-  const { data, isLoading, isError } = useProductDetail(
-    product?.id ? product.id.toString() : ""
+const ProductModal: React.FC<ModalProps> = ({
+  product,
+  isOpen,
+  onClose,
+  extras,
+  variant_id,
+  changeMode = false,
+}) => {
+  const { data, isLoading: productDetailLoading } = useProductDetail(
+    changeMode
+      ? product?.product_id || ""
+      : product?.id
+      ? product.id.toString()
+      : ""
   );
   const productData = data as ProductDetailData;
+  const { mutate: addToCart } = useAddToCart();
+  const { mutate: changeCartItem } = useEditCartItem();
 
   // Выбранный вариант (по дефолту первый)
   const [selectedVariantIndex, setSelectedVariantIndex] = useState<number>(0);
@@ -36,7 +52,23 @@ const ProductModal: React.FC<ModalProps> = ({ product, isOpen, onClose }) => {
     "traditional" | "thin"
   >("traditional");
   // Массив id выбранных дополнительных опций
-  const [selectedExtras, setSelectedExtras] = useState<number[]>([]);
+  const [selectedExtras, setSelectedExtras] = useState<number[]>(
+    extras?.map((item) => item.id) || []
+  );
+
+  useEffect(() => {
+    if (productData?.variants && variant_id) {
+      const index = productData.variants.findIndex((v) => v.id === variant_id);
+      if (index !== -1) setSelectedVariantIndex(index);
+    }
+  }, [productData, variant_id, isOpen]);
+
+  // Обновление extras при изменении входных данных
+  useEffect(() => {
+    if (extras) {
+      setSelectedExtras(extras.map((e) => e.id));
+    }
+  }, [extras, isOpen]);
 
   // Сброс значений при закрытии модального окна
   useEffect(() => {
@@ -69,15 +101,44 @@ const ProductModal: React.FC<ModalProps> = ({ product, isOpen, onClose }) => {
     return basePrice + extrasPrice;
   };
 
-  console.log(productData);
+  console.log(product);
+
+  const handleAddToCart = () => {
+    if (changeMode) {
+      //    - item_key: текущий уникальный ключ позиции в корзине, которую нужно изменить
+      //    - variant_id: новый ID выбранного варианта продукта
+      //    - extras: (опционально) новый список ID доп. опций
+      //    - quantity: (опционально) новое количество; если не указано – сохраняется текущее количество
+      const itemData = {
+        item_key: product?.key,
+        variant_id: productData.variants[selectedVariantIndex].id, // установите выбранный вариант
+        extras: selectedExtras || [], // список ID выбранных доп. опций
+      };
+
+      changeCartItem(itemData);
+    } else {
+      const itemData = {
+        product_id: product?.id,
+        variant_id: productData.variants[selectedVariantIndex].id, // установите выбранный вариант
+        extras: selectedExtras || [], // список ID выбранных доп. опций
+        quantity: 1, // или другое выбранное количество
+      };
+
+      addToCart(itemData);
+    }
+    enableScroll();
+    onClose();
+  };
 
   return (
     <div
       onClick={() => {
-        enableScroll();
+        if (!changeMode) {
+          enableScroll();
+        }
         onClose();
       }}
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 transition-colors duration-300 ${
+      className={`fixed inset-0 z-50 flex h-dvh items-center justify-center bg-black/70 p-4 transition-colors duration-300 ${
         isOpen ? "visible" : "invisible"
       }`}
     >
@@ -123,36 +184,43 @@ const ProductModal: React.FC<ModalProps> = ({ product, isOpen, onClose }) => {
                 {product?.description}
               </p>
 
-              {/* Варианты продукта (размеры) как табы */}
-              {productData?.variants &&
-                productData?.variants?.length > 0 &&
-                productData.variants.some(
-                  (variant) => variant.size != null
-                ) && (
-                  <div className="mt-2">
-                    <h2 className="text-lg font-medium text-gray-700 dark:text-gray-200">
-                      Select Size
-                    </h2>
-                    <div className="flex  gap-3 mt-2 border-b border-gray-200 dark:border-gray-700">
-                      {productData.variants.map((variant, index) => (
-                        <button
-                          key={variant.id}
-                          onClick={() => setSelectedVariantIndex(index)}
-                          className={`px-4 py-2 w-full rounded-3xl  border-b-2 transition-colors duration-300 ${
-                            selectedVariantIndex === index
-                              ? "border-blue-500 text-white bg-blue-500"
-                              : "border-transparent text-gray-500 cursor-pointer hover:text-blue-500 hover:border-blue-500"
-                          }`}
-                        >
-                          {variant.size} cm
-                        </button>
-                      ))}
-                    </div>
+              {productDetailLoading ? (
+                <div className="mt-6 space-y-2">
+                  <div className="h-5 bg-gray-300 dark:bg-gray-600 rounded w-1/3 animate-pulse mb-2" />
+                  <div className="flex gap-3">
+                    {[1, 2].map((i) => (
+                      <div
+                        key={i}
+                        className="w-full h-10 bg-gray-300 dark:bg-gray-600 rounded-3xl animate-pulse"
+                      />
+                    ))}
                   </div>
-                )}
+                </div>
+              ) : (
+                <div className="mt-2">
+                  <h2 className="text-lg font-medium text-gray-700 dark:text-gray-200">
+                    Select Size
+                  </h2>
+                  <div className="flex  gap-3 mt-2 border-b border-gray-200 dark:border-gray-700">
+                    {productData?.variants?.map((variant, index) => (
+                      <button
+                        key={variant.id}
+                        onClick={() => setSelectedVariantIndex(index)}
+                        className={`px-4 py-2 w-full rounded-3xl  border-b-2 transition-colors duration-300 ${
+                          selectedVariantIndex === index
+                            ? "border-blue-500 text-white bg-blue-500"
+                            : "border-transparent text-gray-500 cursor-pointer hover:text-blue-500 hover:border-blue-500"
+                        }`}
+                      >
+                        {variant.size} cm
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Тип теста как табы */}
-              {product?.product_type.toLocaleLowerCase() === "pizzas" && (
+              {product?.product_type?.toLocaleLowerCase() === "pizzas" && (
                 <div className="mt-6">
                   <h2 className="text-lg font-medium text-gray-700 dark:text-gray-200">
                     Dough Type
@@ -175,25 +243,35 @@ const ProductModal: React.FC<ModalProps> = ({ product, isOpen, onClose }) => {
                 </div>
               )}
 
-              {/* Дополнительные опции */}
-              {productData?.extra_options &&
-                productData.extra_options.length > 0 && (
-                  <div className="mt-6 pb-6">
-                    <h2 className="text-lg font-medium text-gray-700 dark:text-gray-200">
-                      Extra Options
-                    </h2>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-2 px-1">
-                      {productData.extra_options.map((extra) => (
-                        <ExtraOptionItem
-                          key={extra.id}
-                          extraOption={extra}
-                          isSelected={selectedExtras.includes(extra.id)}
-                          onToggle={() => handleExtraToggle(extra.id)}
-                        />
-                      ))}
-                    </div>
+              {productDetailLoading ? (
+                <div className="mt-6 pb-6">
+                  <div className="h-5 bg-gray-300 dark:bg-gray-600 rounded w-1/3 mb-4 animate-pulse" />
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {[1, 2, 3, 4].map((i) => (
+                      <div
+                        key={i}
+                        className="h-20 bg-gray-300 dark:bg-gray-600 rounded-lg animate-pulse"
+                      />
+                    ))}
                   </div>
-                )}
+                </div>
+              ) : (
+                <div className="mt-6 pb-6">
+                  <h2 className="text-lg font-medium text-gray-700 dark:text-gray-200">
+                    Extra Options
+                  </h2>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-2 px-1">
+                    {productData?.extra_options?.map((extra) => (
+                      <ExtraOptionItem
+                        key={extra.id}
+                        extraOption={extra}
+                        isSelected={selectedExtras.includes(extra.id)}
+                        onToggle={() => handleExtraToggle(extra.id)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Футер */}
@@ -204,7 +282,10 @@ const ProductModal: React.FC<ModalProps> = ({ product, isOpen, onClose }) => {
                   ${calculateTotalPrice().toFixed(2)}
                 </span>
               </div>
-              <button className="w-full cursor-pointer bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg transition-colors">
+              <button
+                onClick={handleAddToCart}
+                className="w-full cursor-pointer bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg transition-colors"
+              >
                 Add to Cart
               </button>
             </div>

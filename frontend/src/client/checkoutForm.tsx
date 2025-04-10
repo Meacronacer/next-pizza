@@ -1,75 +1,155 @@
+"use client";
 import { Button } from "@/components/ui/button";
+import { useCart, useUpdateCartItemQuantity } from "@/hooks/useCart";
 import React from "react";
 
+// В начале файла добавьте интерфейс CartItem если его нет
+interface CartItem {
+  key: string;
+  product_id: string;
+  variant_id: string;
+  name: string;
+  img_url: string;
+  price: number;
+  quantity: number;
+  extras: Array<{
+    name: string;
+    price: number;
+  }>;
+}
+
+// Затем обновите компонент CheckoutForm
 const CheckoutForm: React.FC = () => {
+  const { data, isLoading, error } = useCart();
+  const { mutate: updateCartItemQuantity } = useUpdateCartItemQuantity();
+
+  // Функция для расчета общей стоимости позиции
+  const calculateItemTotal = (item: CartItem) => {
+    const basePrice = item.price;
+    const extrasTotal = item.extras.reduce(
+      (sum, extra) => sum + extra.price,
+      0
+    );
+    return (basePrice + extrasTotal) * item.quantity;
+  };
+
+  // Функции для изменения количества
+  const handleQuantityChange = (itemKey: string, newQuantity: number) => {
+    updateCartItemQuantity({
+      quantity: newQuantity,
+      item_key: itemKey,
+    });
+  };
+
+  if (isLoading) return <div>Загрузка данных корзины...</div>;
+  if (error) return <div>Ошибка при загрузке корзины</div>;
+
+  // Расчет итоговых сумм
+  const totalValue = data?.reduce(
+    (acc, item) => acc + calculateItemTotal(item),
+    0
+  );
+  const taxes = totalValue ? totalValue * 0.05 : 0; // Пример налога 5%
+  const delivery = 5.0; // Фиксированная стоимость доставки
+  const total = totalValue ? totalValue + taxes + delivery : 0;
+
   return (
-    <div className="container mx-auto p-4 mb-20">
+    <div className="container mx-auto p-4 mt-10 mb-20">
       <h1 className="text-center text-3xl font-bold mb-10">Checkout</h1>
-      {/* На десктопе используем flex-row, на мобильных — flex-col */}
       <form className="flex flex-col md:flex-row gap-10">
         {/* Левая колонка */}
         <div className="flex-1 flex flex-col gap-10">
           {/* 1. Cart Section */}
-          <section className="rounded-[30px] p-8 bg-gray-100 dark:bg-gray-800 max-w-3xl">
+          <section className="rounded-[30px] p-8 bg-gray-100 dark:bg-gray-800 max-w-3xl shadow-xl">
             <div className="flex justify-between items-center mb-5">
               <h2 className="text-2xl font-bold">1. Cart</h2>
               <button
                 type="button"
                 className="flex items-center gap-x-1 text-sm font-medium hover:opacity-70"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="w-5 h-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <polyline points="3 6 5 6 21 6" />
-                  <path d="M19 6l-.867 12.142A2 2 0 0 1 16.138 20H7.862a2 2 0 0 1-1.995-1.858L5 6" />
-                  <path d="M10 11v6" />
-                  <path d="M14 11v6" />
-                </svg>
-                Clear cart
+                {/* Кнопка очистки корзины */}
               </button>
             </div>
             <hr className="mb-5 border-gray-300" />
-            {/* Пример списка товаров */}
-            <div className="space-y-4">
-              <div className="flex justify-between items-center border-b pb-4">
-                <div className="flex items-center gap-x-4">
-                  <img
-                    src="/placeholder.jpg"
-                    alt="Product"
-                    className="w-16 h-16 object-cover rounded"
-                  />
-                  <div>
-                    <p className="font-medium">Product Name</p>
-                    <p className="text-sm">$20.00</p>
+
+            {/* Список товаров */}
+            <div className="space-y-6">
+              {data?.map((item) => {
+                const pricePerUnit =
+                  item.price +
+                  item.extras.reduce((sum, extra) => sum + extra.price, 0);
+
+                return (
+                  <div key={item.key} className="border-b pb-6 last:border-b-0">
+                    <div className="flex justify-between items-start gap-4">
+                      {/* Левая часть: изображение и информация */}
+                      <div className="flex gap-4">
+                        <img
+                          src={item.img_url}
+                          alt={item.name}
+                          className="w-20 h-20 object-cover rounded-lg"
+                        />
+                        <div className="flex flex-col">
+                          <h3 className="font-medium text-lg">{item.name}</h3>
+
+                          {/* Информация о цене */}
+                          <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                            <div>Базовая цена: {item.price.toFixed(2)} $</div>
+                            {item.extras.length > 0 && (
+                              <div className="mt-1">
+                                Дополнительно:
+                                {item.extras.map((extra) => (
+                                  <div key={extra.name} className="ml-2">
+                                    + {extra.name} ({extra.price.toFixed(2)} $)
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Цена за единицу */}
+                          <div className="mt-2 text-sm text-green-600">
+                            Цена за ед.: {pricePerUnit.toFixed(2)} $
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Правая часть: количество и общая сумма */}
+                      <div className="flex flex-col items-end gap-4">
+                        <div className="flex items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleQuantityChange(item.key, item.quantity - 1)
+                            }
+                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600"
+                          >
+                            -
+                          </button>
+                          <span className="min-w-[20px] text-center">
+                            {item.quantity}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleQuantityChange(item.key, item.quantity + 1)
+                            }
+                            className="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600"
+                          >
+                            +
+                          </button>
+                        </div>
+                        <div className="text-lg font-semibold">
+                          {(pricePerUnit * item.quantity).toFixed(2)} $
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center gap-x-2">
-                  <button
-                    type="button"
-                    className="px-2 py-1 rounded hover:bg-gray-300"
-                  >
-                    -
-                  </button>
-                  <span>1</span>
-                  <button
-                    type="button"
-                    className="px-2 py-1 rounded hover:bg-gray-300"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-              {/* Дополнительные товары можно добавить аналогичным образом */}
+                );
+              })}
             </div>
           </section>
-
-          {/* 2. Personal Info Section */}
-          <section className="rounded-[30px] p-8 bg-gray-100 dark:bg-gray-800 max-w-3xl">
+          <section className="rounded-[30px] p-8 bg-gray-100 dark:bg-gray-800 max-w-3xl shadow-xl">
             <h2 className="text-2xl font-bold mb-5">2. Personal Info</h2>
             <hr className="mb-5 border-gray-300" />
             <div className="grid grid-cols-2 gap-6 tablet:grid-cols-1">
@@ -108,8 +188,7 @@ const CheckoutForm: React.FC = () => {
             </div>
           </section>
 
-          {/* 3. Delivery Address Section */}
-          <section className="rounded-[30px] p-8 bg-gray-100 dark:bg-gray-800 max-w-3xl">
+          <section className="rounded-[30px] p-8 bg-gray-100 dark:bg-gray-800 max-w-3xl shadow-xl">
             <h2 className="text-2xl font-bold mb-5">3. Delivery Address</h2>
             <hr className="mb-5 border-gray-300" />
             <div className="flex flex-col gap-4">
@@ -131,9 +210,9 @@ const CheckoutForm: React.FC = () => {
 
         {/* Правая колонка */}
         <div className="w-full md:w-1/3">
-          <div className="sticky  top-[113px] flex flex-col gap-10">
+          <div className="top-[130px] flex flex-col gap-10">
             {/* 4. Payment Section (расположена в правой колонке сверху) */}
-            <section className="rounded-[30px] p-8 bg-gray-100 dark:bg-gray-800">
+            <section className="rounded-[30px] p-8 bg-gray-100 dark:bg-gray-800 shadow-xl">
               <h2 className="text-2xl font-bold mb-5">4. Payment</h2>
               <hr className="mb-5 border-gray-300" />
               <div className="flex flex-col gap-4">
@@ -163,26 +242,39 @@ const CheckoutForm: React.FC = () => {
               </div>
             </section>
 
-            {/* 5. Order Summary Section */}
-            <section className="rounded-[30px] p-8 bg-gray-100 dark:bg-gray-800">
+            {/* Order Summary Section */}
+            <section className="rounded-[30px] p-8 bg-gray-100 dark:bg-gray-800 shadow-xl">
               <h2 className="text-2xl font-bold mb-5">Order Summary</h2>
               <hr className="mb-5 border-gray-300" />
               <div className="flex flex-col gap-4">
-                <div className="flex justify-between">
+                <div className="flex items-center gap-2 w-full">
                   <span className="text-lg">Total Value</span>
-                  <span className="font-bold">$20.00</span>
+                  <div className="flex-1 border-b-2 border-dotted border-gray-400 dark:border-gray-600 h-1" />
+                  <span className="font-bold text-green-500">
+                    {totalValue?.toFixed(2)} $
+                  </span>
                 </div>
-                <div className="flex justify-between">
+
+                <div className="flex items-center gap-2 w-full">
                   <span className="text-lg">Taxes</span>
-                  <span className="font-bold">$3.80</span>
+                  <div className="flex-1 border-b-2 border-dotted border-gray-400 dark:border-gray-600 h-1" />
+                  <span className="font-bold text-green-600">
+                    {taxes.toFixed(2)} $
+                  </span>
                 </div>
-                <div className="flex justify-between">
+
+                <div className="flex items-center gap-2 w-full">
                   <span className="text-lg">Delivery</span>
-                  <span className="font-bold">$5.00</span>
+                  <div className="flex-1 border-b-2 border-dotted border-gray-400 dark:border-gray-600 h-1" />
+                  <span className="font-bold text-green-600">
+                    {delivery.toFixed(2)} $
+                  </span>
                 </div>
-                <div className="border-t pt-4 flex justify-between text-xl font-bold">
+
+                <div className="border-t pt-4 flex items-center gap-2 w-full text-xl font-bold">
                   <span>Total</span>
-                  <span>$28.80</span>
+                  <div className="flex-1 border-b-2 border-dotted border-gray-400 dark:border-gray-600 h-1" />
+                  <span className="text-green-400">{total.toFixed(2)} $</span>
                 </div>
               </div>
               <Button type="submit" className="mt-6 w-full">

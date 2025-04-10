@@ -7,6 +7,7 @@ import CartPanel from "./cartPanel";
 import { LinkTo } from "@/utils/navigations";
 import { useRouter } from "next/navigation";
 import { disableScroll, enableScroll } from "@/utils/scrollbar";
+import { useCart } from "@/hooks/useCart";
 
 export default function Header() {
   const [mounted, setMounted] = useState(false);
@@ -16,6 +17,8 @@ export default function Header() {
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [cartModal, setCartModal] = useState(false);
   const router = useRouter();
+
+  const { data = [], isLoading, error } = useCart();
 
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
@@ -98,15 +101,25 @@ export default function Header() {
             >
               {language === "en" ? "EN" : "UK"}
             </button>
-            <button
-              onClick={() => {
-                disableScroll();
-                setCartModal(true);
-              }}
-              className="text-xl dark:hover:bg-white/30 hover:bg-black/50 duration-200 p-1 cursor-pointer"
-            >
-              🛒
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => {
+                  disableScroll();
+                  setCartModal(true);
+                }}
+                className="text-xl dark:hover:bg-white/30 hover:bg-black/50 duration-200 p-1 cursor-pointer"
+              >
+                🛒
+              </button>
+
+              {data && data?.length > 0 && (
+                <div className="absolute pointer-events-none bottom-0 bg-green-500 h-5 w-5 right-0 rounded-full">
+                  <span className="text-[12px] flex items-center mx-auto justify-center mt-0.5 ml-0.5">
+                    {data?.length}
+                  </span>
+                </div>
+              )}
+            </div>
             {isAuthorized ? (
               <button className="p-2 rounded-full border">
                 <span role="img" aria-label="User">
@@ -164,7 +177,7 @@ export default function Header() {
           enableScroll();
           setCartModal(false);
         }}
-        cartItems={[]}
+        cartItems={data}
       />
     </header>
   );

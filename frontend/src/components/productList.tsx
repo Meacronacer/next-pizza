@@ -3,7 +3,7 @@
 import { Dispatch, SetStateAction } from "react";
 import ProductItem from "./productItem";
 import { Iproduct } from "@/@types/product";
-import { useProducts } from "@/api/fetchProducts";
+import { useProducts } from "@/api/productsApi";
 import { disableScroll } from "@/utils/scrollbar";
 
 export interface IproductListProps {

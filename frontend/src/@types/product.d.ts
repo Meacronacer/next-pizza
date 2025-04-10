@@ -1,5 +1,7 @@
 export interface Iproduct {
   id: number;
+  key: string;
+  product_id?: string;
   name: string;
   img_url: string;
   product_type: string;
