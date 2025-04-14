@@ -101,8 +101,6 @@ const ProductModal: React.FC<ModalProps> = ({
     return basePrice + extrasPrice;
   };
 
-  console.log(product);
-
   const handleAddToCart = () => {
     if (changeMode) {
       //    - item_key: текущий уникальный ключ позиции в корзине, которую нужно изменить

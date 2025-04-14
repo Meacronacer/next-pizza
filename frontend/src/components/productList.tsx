@@ -1,9 +1,10 @@
-"use client";
-
 import { Dispatch, SetStateAction } from "react";
 import ProductItem from "./productItem";
+import SkeletonProductItem from "@/skeletons/skeletonProductItem";
 import { Iproduct } from "@/@types/product";
 import { useProducts } from "@/api/productsApi";
+
+import React from "react";
 import { disableScroll } from "@/utils/scrollbar";
 
 export interface IproductListProps {
@@ -17,27 +18,45 @@ const ProductList: React.FC<IproductListProps> = ({
 }) => {
   const { data, isLoading, error } = useProducts();
 
-  if (isLoading) return <p>Loading...</p>;
   if (error) return <p>Error loading products.</p>;
-  if (!data) return null; // или можно вернуть заглушку
+
+  // Список категорий по умолчанию для скелетонов
+  const defaultCategories = ["pizzas", "snacks", "cocktails", "cofe"];
+
+  // Если загрузка не идет и data существует – приводим Object.entries к нужному типу,
+  // иначе создаём для скелетонов массив такого же типа:
+  const categories: [string, Iproduct[]][] =
+    !isLoading && data
+      ? (Object.entries(data) as [string, Iproduct[]][])
+      : defaultCategories.map((cat) => [cat, Array(8).fill(null)]);
 
   return (
     <div>
-      {Object.entries(data).map(([category, items]) => (
-        <section key={category} className="mb-10">
-          <h2 className="text-2xl font-bold mb-4 capitalize">{category}</h2>
+      {categories.map(([category, items], index) => (
+        <section key={index} className="mb-10">
+          <h2 className="text-2xl font-bold mb-4 capitalize">
+            {isLoading ? (
+              <div className="w-1/2 h-8 bg-gray-300 dark:bg-gray-700 rounded animate-pulse" />
+            ) : (
+              category
+            )}
+          </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {items.map((product: Iproduct) => (
-              <ProductItem
-                setProduct={() => {
-                  setProduct(product);
-                  setIsOpen(true);
-                  disableScroll();
-                }}
-                key={product.id}
-                product={product}
-              />
-            ))}
+            {items.map((item, i) =>
+              isLoading ? (
+                <SkeletonProductItem key={i} />
+              ) : (
+                <ProductItem
+                  key={(item as Iproduct).id}
+                  product={item as Iproduct}
+                  setProduct={() => {
+                    setProduct(item as Iproduct);
+                    setIsOpen(true);
+                    disableScroll();
+                  }}
+                />
+              )
+            )}
           </div>
         </section>
       ))}

@@ -5,7 +5,7 @@ export const metadata = {
   description: "Page for submit order",
 };
 
-const CheckoutPage = () => {
+const CheckoutPage = async () => {
   return <CheckoutForm />;
 };
 

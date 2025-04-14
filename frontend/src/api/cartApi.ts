@@ -1,3 +1,5 @@
+import { API_URL } from "./base";
+
 // api/cart.ts
 export interface CartItem {
   product_variant_id: number;
@@ -30,8 +32,6 @@ export interface RemoveCartPayload {
   product_variant_id: number;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
 export async function fetchCart(): Promise<CartItem[]> {
   const res = await fetch(API_URL + "/api/cart/", {
     method: "GET",
@@ -43,7 +43,6 @@ export async function fetchCart(): Promise<CartItem[]> {
   return res.json();
 }
 
-// api/cartApi.js
 export async function addToCart(itemData: any) {
   const response = await fetch(API_URL + "/api/cart/add/", {
     method: "POST",
@@ -90,16 +89,13 @@ export async function editCartItem(payload: UpdateCartPayload): Promise<any> {
   return res.json();
 }
 
-export async function removeCartItem(
-  payload: Pick<CartItem, "product_variant_id">
-): Promise<any> {
-  const res = await fetch(API_URL + "/api/cart/remove/", {
+export async function clearCart() {
+  const res = await fetch(API_URL + "/api/cart/clear/", {
     method: "POST", // либо DELETE, в зависимости от реализации
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(payload),
   });
   if (!res.ok) {
     throw new Error("Error removing cart item");

@@ -1,6 +1,6 @@
+import React, { forwardRef, InputHTMLAttributes } from "react";
 import { VariantProps, cva } from "class-variance-authority";
 import { cn } from "../../utils/twMerge";
-import { InputHTMLAttributes } from "react";
 import { FieldError } from "react-hook-form";
 
 const InputVariants = cva(
@@ -12,7 +12,7 @@ const InputVariants = cva(
       },
       error: {
         true: "border-red-800",
-        false: "dark:border-white/10  border-black/10",
+        false: "dark:border-white/10 border-black/10",
       },
     },
     defaultVariants: {
@@ -26,32 +26,30 @@ interface InputProps
   extends InputHTMLAttributes<HTMLInputElement>,
     Omit<VariantProps<typeof InputVariants>, "error"> {
   label?: string; // Метка над полем
-  error?: FieldError | undefined; // Сообщение об ошибке (текст)
+  error?: FieldError | undefined; // Ошибка из react-hook-form
   containerClassName?: string; // Классы для контейнера
 }
 
-const Input: React.FC<InputProps> = ({
-  label,
-  error,
-  className,
-  containerClassName,
-  variant,
-  ...props
-}) => {
-  return (
-    <div className={cn("relative", containerClassName)}>
-      {label && <label>{label}</label>}
-      <input
-        className={cn(InputVariants({ variant, error: !!error, className }))}
-        {...props}
-      />
-      {error && (
-        <p className="absolute -bottom-2.5 text-[10px] text-red-500">
-          {error.message}
-        </p>
-      )}
-    </div>
-  );
-};
+const Input = forwardRef<HTMLInputElement, InputProps>(
+  ({ label, error, className, containerClassName, variant, ...props }, ref) => {
+    return (
+      <div className={cn("relative flex flex-col gap-1", containerClassName)}>
+        {label && <label className="font-bold">{label}</label>}
+        <input
+          ref={ref}
+          className={cn(InputVariants({ variant, error: !!error, className }))}
+          {...props}
+        />
+        {error && (
+          <p className="absolute -bottom-2.5 text-[10px] text-red-500">
+            {error.message}
+          </p>
+        )}
+      </div>
+    );
+  }
+);
+
+Input.displayName = "Input";
 
 export { Input, InputVariants };

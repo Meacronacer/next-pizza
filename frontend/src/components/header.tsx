@@ -5,20 +5,22 @@ import { useTheme } from "next-themes";
 import { useClickOutside } from "@/hooks/useClickOutside";
 import CartPanel from "./cartPanel";
 import { LinkTo } from "@/utils/navigations";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { disableScroll, enableScroll } from "@/utils/scrollbar";
 import { useCart } from "@/hooks/useCart";
+import { useUserProfile } from "@/hooks/useAuth";
 
 export default function Header() {
   const [mounted, setMounted] = useState(false);
-  const [isAuthorized, setIsAuthorized] = useState(false); // по дефолту не авторизирован
   const { theme, setTheme } = useTheme();
   const [language, setLanguage] = useState("en"); // en или uk
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [cartModal, setCartModal] = useState(false);
   const router = useRouter();
+  const path = usePathname();
 
-  const { data = [], isLoading, error } = useCart();
+  const { data = [] } = useCart();
+  const { data: user, isLoading } = useUserProfile();
 
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark");
@@ -120,13 +122,32 @@ export default function Header() {
                 </div>
               )}
             </div>
-            {isAuthorized ? (
-              <button className="p-2 rounded-full border">
-                <span role="img" aria-label="User">
-                  👤
-                </span>
-              </button>
+            {isLoading ? (
+              // Если данные загружаются, отображаем скелетон
+              <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse" />
+            ) : user?.id ? (
+              // Если пользователь есть, проверяем наличие img_url
+              user.img_url ? (
+                // Если img_url присутствует, отображаем его как аватарку
+                <img
+                  onClick={() => router.push(LinkTo.profile)}
+                  src={user?.img_url}
+                  alt="User Avatar"
+                  className="w-8 h-8 rounded-full object-cover"
+                />
+              ) : (
+                // Если изображения нет, используем дефолтную аватарку
+                <button
+                  onClick={() => router.push(LinkTo.profile)}
+                  className="p-2 cursor-pointer rounded-full border"
+                >
+                  <span role="img" aria-label="User">
+                    👤
+                  </span>
+                </button>
+              )
             ) : (
+              // Если пользователь не залогинен, предлагаем перейти на страницу логина
               <button
                 onClick={() => router.push(LinkTo.login)}
                 className="bg-orange-500 hover:bg-orange-700 cursor-pointer duration-200 text-white px-4 py-2 rounded-lg"
@@ -157,19 +178,21 @@ export default function Header() {
           </button>
         </div>
         {/* Нижняя навигационная панель */}
-        <nav className="ml-4">
-          <div className="container mx-auto py-2 flex space-x-4 overflow-x-auto">
-            {navItems.map((item) => (
-              <a
-                key={item.id}
-                href={`#${item.id}`}
-                className="whitespace-nowrap text-sm hover:underline hover:text-purple-500"
-              >
-                {item.label}
-              </a>
-            ))}
-          </div>
-        </nav>
+        {path === "/" && (
+          <nav className="ml-4">
+            <div className="container mx-auto py-2 flex space-x-4 overflow-x-auto">
+              {navItems.map((item) => (
+                <a
+                  key={item.id}
+                  href={`#${item.id}`}
+                  className="whitespace-nowrap text-sm hover:underline hover:text-purple-500"
+                >
+                  {item.label}
+                </a>
+              ))}
+            </div>
+          </nav>
+        )}
       </div>
       <CartPanel
         open={cartModal}

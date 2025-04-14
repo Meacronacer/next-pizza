@@ -1,6 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useLogin } from "@/hooks/useAuth";
 import useToastify from "@/hooks/useTostify";
 import { LinkTo } from "@/utils/navigations";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -23,6 +24,8 @@ interface Inputs {
 const LoginForm = () => {
   const router = useRouter();
   const { toastError } = useToastify();
+  const { mutate: loginUser, isPending } = useLogin();
+
   const {
     register,
     handleSubmit,
@@ -34,7 +37,13 @@ const LoginForm = () => {
   });
 
   const onSubmit: SubmitHandler<Inputs> = (data) => {
-    // логика входа
+    loginUser(
+      {
+        email: data.email,
+        password: data.password,
+      },
+      { onSuccess: () => router.push(LinkTo.home) }
+    );
   };
 
   const handleGoogleLogin = () => {
@@ -42,7 +51,7 @@ const LoginForm = () => {
   };
 
   return (
-    <section className="flex flex-col w-full items-center mt-10 min-h-screen px-4">
+    <section className="flex flex-col w-full items-center mt-32 min-h-screen px-4">
       <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-lg">
         <h2 className="text-center text-3xl font-bold mb-6 text-gray-900 dark:text-white">
           Sign In

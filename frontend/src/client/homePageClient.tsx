@@ -1,6 +1,5 @@
 "use client";
 import { Iproduct } from "@/@types/product";
-import { CartItem } from "@/api/cartApi";
 import ProductList from "@/components/productList";
 import ProductModal from "@/components/productModal";
 import { useState } from "react";

@@ -1,19 +1,13 @@
-import {
-  useMutation,
-  UseMutationResult,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   fetchCart,
   addToCart,
-  removeCartItem,
   AddToCartPayload,
   UpdateCartPayload,
-  RemoveCartPayload,
   CartItem,
   updateCartItemQuantity,
   editCartItem,
+  clearCart,
 } from "../api/cartApi";
 
 export function useCart() {
@@ -53,10 +47,10 @@ export function useEditCartItem() {
   });
 }
 
-export function useRemoveCartItem() {
+export function useClearCart() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (payload: RemoveCartPayload) => removeCartItem(payload),
+    mutationFn: clearCart,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cart"] });
     },

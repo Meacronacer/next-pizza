@@ -1,6 +1,9 @@
 import { useCart, useUpdateCartItemQuantity } from "@/hooks/useCart";
 import React, { useEffect, useRef, useState } from "react";
 import ProductModal from "./productModal";
+import { LinkTo } from "@/utils/navigations";
+import { useRouter } from "next/navigation";
+import { enableScroll } from "@/utils/scrollbar";
 
 interface CartItem {
   key: string;
@@ -26,6 +29,7 @@ const CartPanel: React.FC<CartPanelProps> = ({ open, onClose, cartItems }) => {
   // Функция для расчета общей стоимости позиции
   const [editProduct, setEditProduct] = useState<any>({});
   const [showModal, setShowModal] = useState<boolean>(false);
+  const router = useRouter();
 
   const calculateItemTotal = (item: CartItem) => {
     const basePrice = item.price;
@@ -220,7 +224,13 @@ const CartPanel: React.FC<CartPanelProps> = ({ open, onClose, cartItems }) => {
               $
             </span>
           </div>
-          <button className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg transition-colors">
+          <button
+            onClick={() => {
+              onClose();
+              router.push(LinkTo.checkout);
+            }}
+            className="w-full cursor-pointer bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-lg transition-colors"
+          >
             Оформить заказ
           </button>
         </div>

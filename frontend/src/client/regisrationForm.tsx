@@ -50,7 +50,7 @@ const RegistrationForm = () => {
   };
 
   return (
-    <section className="flex flex-col w-full items-center mt-10 min-h-screen px-4">
+    <section className="flex flex-col w-full items-center mt-32 min-h-screen px-4">
       <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-3xl p-8 shadow-lg">
         <h2 className="text-center text-3xl font-bold mb-6 text-gray-900 dark:text-white">
           Sign Up
