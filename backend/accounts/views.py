@@ -1,12 +1,65 @@
+from django.conf import settings
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.response import Response
+from django.core.mail import send_mail
+from django.utils.http import urlsafe_base64_encode
+from django.utils.encoding import force_bytes
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
-from .serializers import RegisterSerializer
-from .sendEmail import send_confirmation_email, verify_confirmation_token
-from django.shortcuts import get_object_or_404
+from rest_framework.decorators import api_view
+from rest_framework_simplejwt.tokens import AccessToken, RefreshToken, TokenError
+from .serializers import (
+    RegisterSerializer,
+    PasswordResetRequestSerializer,
+    PasswordResetConfirmSerializer,
+    GoogleAuthSerializer,
+)
+from .confirmEmail import send_confirmation_email, verify_confirmation_token
 from .models import AppUser 
+from .authentication import CookieJWTAuthentication
+from rest_framework.decorators import api_view, authentication_classes, permission_classes
+from rest_framework.permissions import IsAuthenticated
+import requests
+
+
+
+User = get_user_model()
+
+@api_view(['GET'])
+@authentication_classes([CookieJWTAuthentication])
+@permission_classes([IsAuthenticated])   # ← обязательная проверка
+def get_profile(request):
+    # Попытка извлечь токен из cookies; имя ключа можно задать по своему усмотрению
+    token = request.COOKIES.get("access_token")
+    if not token:
+        return Response({"detail": "Access token not provided in cookies."}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        # Проверяем токен на валидность
+        access_token = AccessToken(token)
+    except TokenError as e:
+        return Response({"detail": "Invalid token."}, status=status.HTTP_401_UNAUTHORIZED)
+    
+    # Извлечение id пользователя из токена (стандартное поле SimpleJWT - user_id)
+    user_id = access_token.get("user_id")
+    
+    try:
+        user = User.objects.get(id=user_id)
+    except User.DoesNotExist:
+        return Response({"detail": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+    
+    profile_data = {
+        "id": user.id,
+        "email": user.email,
+        "first_name": user.first_name,
+        "second_name": user.second_name,
+        "img_url": user.img_url
+    }
+    return Response(profile_data)
 
 
 class RegisterView(APIView):
@@ -28,45 +81,125 @@ class ConfirmEmailView(APIView):
         user = get_object_or_404(AppUser, email=email)
         user.is_verified = True
         user.save()
-        return Response({"message": "Email успешно подтвержден."})
+        return redirect(settings.FRONTEND_URL + '/login/')
+    
 
+class GoogleLoginView(APIView):
+    def post(self, request):
+        serializer = GoogleAuthSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        token = serializer.validated_data['token']
+
+        # Валидация токена через Google
+        try:
+            response = requests.get(
+                f'https://oauth2.googleapis.com/tokeninfo?id_token={token}'
+            )
+            response.raise_for_status()
+            user_data = response.json()
+        except requests.RequestException:
+            return Response(
+                {'error': 'Invalid Google token'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        email = user_data.get('email')
+        if not email:
+            return Response(
+                {'error': 'Email not found in token'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Поиск или создание пользователя
+        try:
+            user = AppUser.objects.get(email=email)
+            if user.provider != 'google':
+                return Response(
+                    {'error': 'User exists with different auth method'},
+                    status=status.HTTP_409_CONFLICT
+                )
+        except AppUser.DoesNotExist:
+            user = AppUser.objects.create_user(
+                email=email,
+                first_name=user_data.get('given_name', ''),
+                second_name=user_data.get('family_name', ''),
+                img_url=user_data.get('picture', ''),
+                provider='google'
+            )
+
+        # Генерация JWT токенов
+        refresh = RefreshToken.for_user(user)
+        response = Response({
+            'access': str(refresh.access_token),
+            'refresh': str(refresh)
+        })
+
+        # Установка токенов в cookies
+        response.set_cookie(
+            key='access_token',
+            value=str(refresh.access_token),
+            httponly=True,
+            samesite='Lax'
+        )
+        response.set_cookie(
+            key='refresh_token',
+            value=str(refresh),
+            httponly=True,
+            samesite='Lax'
+        )
+        
+        return response
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
-    """
-    При успешной аутентификации возвращает access и refresh токены,
-    устанавливая их в HttpOnly cookies.
-    """
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
+        
         if response.status_code == 200:
-            data = response.data
-            # Устанавливаем access-токен в куки (HttpOnly, samesite можно настроить)
             response.set_cookie(
                 key='access_token',
-                value=data.get('access'),
+                value=response.data['access'],
                 httponly=True,
-                secure=False,  # установите True на production с HTTPS
-                max_age=300,   # 5 минут в секундах (должно совпадать с ACCESS_TOKEN_LIFETIME)
-                samesite='Lax'
+                secure=True,            # обязательно для SameSite=None
+                max_age=60 * 15,  # 15 минут
+                samesite='None',          # разрешить кросс‑доменную отправку
+
             )
-            # Устанавливаем refresh-токен в куки
             response.set_cookie(
                 key='refresh_token',
-                value=data.get('refresh'),
+                value=response.data['refresh'],
                 httponly=True,
-                secure=False,
-                max_age=15 * 24 * 60 * 60,  # 15 дней
-                samesite='Lax'
+                secure=True,            # обязательно для SameSite=None
+                max_age=60 * 60 * 24 * 7,  # 7 дней
+                samesite='None',          # разрешить кросс‑доменную отправку
+
             )
+            
+            # Убираем токены из тела ответа
+            del response.data['access']
+            del response.data['refresh']
+        
         return response
+    
 
 class CustomTokenRefreshView(TokenRefreshView):
     """
     При обновлении access-токена, возвращает новый access-токен и устанавливает его в куки.
-    Refresh-токен не меняется, благодаря настройке ROTATE_REFRESH_TOKENS=False.
+    Если refresh-токен не передан в теле запроса, он берется из куки 'refresh_token'.
     """
     def post(self, request, *args, **kwargs):
+        # Если в теле запроса не передан refresh-токен, достаем его из куки
+        if "refresh" not in request.data:
+            refresh_token = request.COOKIES.get('refresh_token')
+            if refresh_token:
+                # Если request.data — QueryDict, его нужно сделать мутабельным
+                if hasattr(request.data, 'copy'):
+                    data_copy = request.data.copy()
+                    data_copy["refresh"] = refresh_token
+                    request._full_data = data_copy
+                else:
+                    request.data["refresh"] = refresh_token
+
         response = super().post(request, *args, **kwargs)
         if response.status_code == 200:
             data = response.data
@@ -74,8 +207,63 @@ class CustomTokenRefreshView(TokenRefreshView):
                 key='access_token',
                 value=data.get('access'),
                 httponly=True,
-                secure=False,
+                secure=True,            # обязательно для SameSite=None
                 max_age=300,  # 5 минут
-                samesite='Lax'
+                samesite='None',          # разрешить кросс‑доменную отправку
+
             )
         return response
+
+
+
+class PasswordResetRequestView(APIView):
+    """
+    POST { "email": "user@example.com" }
+    """
+    def post(self, request):
+        serializer = PasswordResetRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.user
+
+        # Build password reset link
+        uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+        token = PasswordResetTokenGenerator().make_token(user)
+        reset_url = f"{settings.FRONTEND_URL}/reset-password-confirm/{uidb64}/{token}/"
+
+        # Send email
+        subject = "Password Reset Requested"
+        message = (
+            f"Hi {user.first_name},\n\n"
+            f"To reset your password, click the link below:\n\n"
+            f"{reset_url}\n\n"
+            "If you did not request a password reset, please ignore this email.\n"
+        )
+        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
+
+        return Response({"message": "Password reset link was sent to your email!"}, status=status.HTTP_200_OK)
+
+
+class PasswordResetConfirmView(APIView):
+    """
+    POST { "uid": "...", "token": "...", "new_password": "..." }
+    """
+    def post(self, request):
+        serializer = PasswordResetConfirmSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.user
+        user.set_password(serializer.validated_data['new_password'])
+        user.save()
+        return Response({"message": "Password has been reset successfully."}, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+def logout_view(request):
+    """
+    Очищает куки access_token и refresh_token для логаута.
+    """
+    response = Response({"message": "Logged out successfully."}, status=status.HTTP_200_OK)
+    # Удаляем токены
+    response.delete_cookie('access_token')
+    response.delete_cookie('refresh_token')
+    return response
+

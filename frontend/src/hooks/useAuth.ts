@@ -1,11 +1,18 @@
 import {
-  RegisterResponse,
-  RegisterPayload,
+  IloginForm,
+  ILoginResponse,
+  ImessageResponse,
+  IregisterForm,
+  IresetPasswordConfirms,
+  IresetPasswordForm,
+} from "@/@types/auth";
+import {
   registerUser,
   loginUser,
-  LoginPayload,
   requestPasswordReset,
   fetchUserProfile,
+  confirmPasswordReset,
+  logout,
 } from "@/api/authApi";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -14,20 +21,22 @@ export function useUserProfile() {
     queryKey: ["userProfile"],
     queryFn: fetchUserProfile,
     retry: false, // отключаем автоматический повтор запроса при ошибке
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 }
 
 export function useRegister() {
-  return useMutation<RegisterResponse, Error, RegisterPayload>({
+  return useMutation<ImessageResponse, Error, IregisterForm>({
     mutationFn: registerUser,
   });
 }
 
 export function useLogin() {
   const queryClient = useQueryClient();
-  return useMutation<RegisterResponse, Error, LoginPayload>({
+  return useMutation<ILoginResponse, Error, IloginForm>({
     mutationFn: loginUser,
-    onSuccess: (data) => {
+    onSuccess: () => {
       // При успешном логине сервер установил токены в куки,
       // дальше можно инвалидировать запрос профиля, чтобы он повторился
       queryClient.invalidateQueries({ queryKey: ["userProfile"] });
@@ -36,8 +45,25 @@ export function useLogin() {
     },
   });
 }
-export function useResetPassword() {
-  return useMutation<RegisterResponse, Error, RegisterPayload>({
+export function useRequestResetPassword() {
+  return useMutation<ImessageResponse, Error, IresetPasswordForm>({
     mutationFn: requestPasswordReset,
+  });
+}
+
+export function useResetPasswordConfirm() {
+  return useMutation<ImessageResponse, Error, IresetPasswordConfirms>({
+    mutationFn: confirmPasswordReset,
+  });
+}
+
+export function useLogout() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: logout,
+    onSuccess: () => {
+      // Очистка кэша профиля пользователя
+      queryClient.removeQueries({ queryKey: ["userProfile"] });
+    },
   });
 }

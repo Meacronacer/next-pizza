@@ -9,13 +9,17 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-
+import os
 from datetime import timedelta
 from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
@@ -45,10 +49,12 @@ INSTALLED_APPS = [
     'accounts',
     'products',
     'cart',
+    'orders',
     #installed apps
     "corsheaders",
     'rest_framework',
     'rest_framework_simplejwt.token_blacklist',
+    'auditlog',
 ]
 
 
@@ -60,10 +66,16 @@ REST_FRAMEWORK = {
 
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),  # время жизни access-токена
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=15),
-    'ROTATE_REFRESH_TOKENS': False,  # рефреш-токен не обновляется при refresh
-    'AUTH_HEADER_TYPES': ('Bearer',),
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=15),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'AUTH_COOKIE': 'access_token',  # Название куки для access token
+    'AUTH_COOKIE_DOMAIN': None,
+    'AUTH_COOKIE_SECURE': False,
+    'AUTH_COOKIE_HTTP_ONLY': True,
+    'AUTH_COOKIE_PATH': '/',
+    'AUTH_COOKIE_SAMESITE': 'Lax',
 }
 
 
@@ -79,6 +91,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    'auditlog.middleware.AuditlogMiddleware',
+
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -131,6 +146,30 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+# Измените эти значения
+CSRF_COOKIE_SECURE = False  # Для HTTP разработки
+SESSION_COOKIE_SECURE = False  # Для HTTP разработки
+CSRF_COOKIE_SAMESITE = 'Lax'  # Или 'None' если используете Cross-Site
+SESSION_COOKIE_SAMESITE = 'Lax'
+CORS_ALLOW_CREDENTIALS = True
+
+# Добавьте эти настройки
+SESSION_COOKIE_DOMAIN = None
+SESSION_COOKIE_PATH = '/'
+SESSION_SAVE_EVERY_REQUEST = True
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',  # Добавьте этот заголовок
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
@@ -154,6 +193,27 @@ CORS_ALLOW_METHODS = (
 )
 CORS_ALLOW_CREDENTIALS = True
 
+CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
+CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET')
+
+
+FRONTEND_URL = os.getenv('CLIENT_URL')
+API_URL = os.getenv('API_URL')
+
+LIQPAY_PUBLIC_KEY = os.getenv('LIQPAY_PUBLIC_KEY')
+LIQPAY_PRIVATE_KEY = os.getenv('LIQPAY_PRIVATE_KEY')
+LIQPAY_CALLBACK_URL = os.getenv('LIQPAY_CALLBACK_URL')
+#LIQPAY_RESULT_URL = os.getenv('LIQPAY_RESULT_URL', 'http://localhost:3000/payment-success')
+LIQPAY_RESULT_URL = f"{os.getenv('CLIENT_URL')}/payment-success?order_id={{order_id}}&token={{token}}"
+
+
+# Настройки для отправки email
+EMAIL_HOST =  os.getenv('EMAIL_HOST')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+EMAIL_USE_TLS = True
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/

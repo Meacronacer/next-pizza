@@ -1,8 +1,8 @@
-import { Iproduct } from "@/@types/product";
+import { IextrasOptions, Iproduct, IproductDetails } from "@/@types/product";
 import { useProductDetail } from "@/api/productsApi";
 import { useAddToCart, useEditCartItem } from "@/hooks/useCart";
 import React, { useEffect, useState } from "react";
-import ExtraOptionItem, { ExtraOptionType } from "./extraOptionItem";
+import ExtraOptionItem from "./extraOptionItem";
 import Image from "next/image";
 import { enableScroll } from "@/utils/scrollbar";
 
@@ -10,20 +10,9 @@ interface ModalProps {
   product: Iproduct | null;
   isOpen: boolean;
   onClose: () => void;
-  extras?: ExtraOptionType[];
+  extras?: IextrasOptions[];
   variant_id?: number;
   changeMode?: boolean;
-}
-
-interface VariantType {
-  id: number;
-  size: number;
-  price: number;
-}
-
-export interface ProductDetailData {
-  variants: VariantType[];
-  extra_options: ExtraOptionType[];
 }
 
 const ProductModal: React.FC<ModalProps> = ({
@@ -41,16 +30,12 @@ const ProductModal: React.FC<ModalProps> = ({
       ? product.id.toString()
       : ""
   );
-  const productData = data as ProductDetailData;
+  const productData = data as IproductDetails;
   const { mutate: addToCart } = useAddToCart();
   const { mutate: changeCartItem } = useEditCartItem();
 
   // Выбранный вариант (по дефолту первый)
   const [selectedVariantIndex, setSelectedVariantIndex] = useState<number>(0);
-  // Выбранный тип теста (например, "traditional" или "thin")
-  const [selectedDoughType, setSelectedDoughType] = useState<
-    "traditional" | "thin"
-  >("traditional");
   // Массив id выбранных дополнительных опций
   const [selectedExtras, setSelectedExtras] = useState<number[]>(
     extras?.map((item) => item.id) || []
@@ -74,7 +59,6 @@ const ProductModal: React.FC<ModalProps> = ({
   useEffect(() => {
     if (!isOpen) {
       setSelectedVariantIndex(0);
-      setSelectedDoughType("traditional");
       setSelectedExtras([]);
     }
   }, [isOpen]);
@@ -182,7 +166,7 @@ const ProductModal: React.FC<ModalProps> = ({
                 {product?.description}
               </p>
 
-              {productDetailLoading ? (
+              {productDetailLoading && (
                 <div className="mt-6 space-y-2">
                   <div className="h-5 bg-gray-300 dark:bg-gray-600 rounded w-1/3 animate-pulse mb-2" />
                   <div className="flex gap-3">
@@ -194,54 +178,33 @@ const ProductModal: React.FC<ModalProps> = ({
                     ))}
                   </div>
                 </div>
-              ) : (
-                <div className="mt-2">
-                  <h2 className="text-lg font-medium text-gray-700 dark:text-gray-200">
-                    Select Size
-                  </h2>
-                  <div className="flex  gap-3 mt-2 border-b border-gray-200 dark:border-gray-700">
-                    {productData?.variants?.map((variant, index) => (
-                      <button
-                        key={variant.id}
-                        onClick={() => setSelectedVariantIndex(index)}
-                        className={`px-4 py-2 w-full rounded-3xl  border-b-2 transition-colors duration-300 ${
-                          selectedVariantIndex === index
-                            ? "border-blue-500 text-white bg-blue-500"
-                            : "border-transparent text-gray-500 cursor-pointer hover:text-blue-500 hover:border-blue-500"
-                        }`}
-                      >
-                        {variant.size} cm
-                      </button>
-                    ))}
-                  </div>
-                </div>
               )}
 
-              {/* Тип теста как табы */}
-              {product?.product_type?.toLocaleLowerCase() === "pizzas" && (
-                <div className="mt-6">
-                  <h2 className="text-lg font-medium text-gray-700 dark:text-gray-200">
-                    Dough Type
-                  </h2>
-                  <div className="flex rounded-e-3xl gap-3 mt-2 border-b border-gray-200 dark:border-gray-700">
-                    {(["traditional", "thin"] as const).map((type) => (
-                      <button
-                        key={type}
-                        onClick={() => setSelectedDoughType(type)}
-                        className={`px-4 py-2 w-full rounded-3xl border-b-2 transition-colors duration-300 ${
-                          selectedDoughType === type
-                            ? "border-blue-500 text-white bg-blue-500"
-                            : "border-transparent text-gray-500 cursor-pointer hover:text-blue-500 hover:border-blue-500"
-                        }`}
-                      >
-                        {type.charAt(0).toUpperCase() + type.slice(1)}
-                      </button>
-                    ))}
+              {!productDetailLoading &&
+                productData?.variants.some((i) => i.size) && (
+                  <div className="mt-2">
+                    <h2 className="text-lg font-medium text-gray-700 dark:text-gray-200">
+                      Select Size
+                    </h2>
+                    <div className="flex  gap-3 mt-2 border-b border-gray-200 dark:border-gray-700">
+                      {productData?.variants?.map((variant, index) => (
+                        <button
+                          key={variant.id}
+                          onClick={() => setSelectedVariantIndex(index)}
+                          className={`px-4 py-2 w-full rounded-3xl  border-b-2 transition-colors duration-300 ${
+                            selectedVariantIndex === index
+                              ? "border-orange-500 text-white bg-orange-500"
+                              : "border-transparent text-gray-500 cursor-pointer hover:text-orange-500 hover:border-orange-500"
+                          }`}
+                        >
+                          {variant.size} cm
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
-              {productDetailLoading ? (
+              {productDetailLoading && (
                 <div className="mt-6 pb-6">
                   <div className="h-5 bg-gray-300 dark:bg-gray-600 rounded w-1/3 mb-4 animate-pulse" />
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -253,23 +216,27 @@ const ProductModal: React.FC<ModalProps> = ({
                     ))}
                   </div>
                 </div>
-              ) : (
-                <div className="mt-6 pb-6">
-                  <h2 className="text-lg font-medium text-gray-700 dark:text-gray-200">
-                    Extra Options
-                  </h2>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-2 px-1">
-                    {productData?.extra_options?.map((extra) => (
-                      <ExtraOptionItem
-                        key={extra.id}
-                        extraOption={extra}
-                        isSelected={selectedExtras.includes(extra.id)}
-                        onToggle={() => handleExtraToggle(extra.id)}
-                      />
-                    ))}
-                  </div>
-                </div>
               )}
+
+              {!productDetailLoading &&
+                productData?.extra_options &&
+                productData?.extra_options.length > 0 && (
+                  <div className="mt-6 pb-6">
+                    <h2 className="text-lg font-medium text-gray-700 dark:text-gray-200">
+                      Extra Options
+                    </h2>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-2 px-1">
+                      {productData?.extra_options?.map((extra) => (
+                        <ExtraOptionItem
+                          key={extra.id}
+                          extraOption={extra}
+                          isSelected={selectedExtras.includes(extra.id)}
+                          onToggle={() => handleExtraToggle(extra.id)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                )}
             </div>
 
             {/* Футер */}
@@ -282,7 +249,7 @@ const ProductModal: React.FC<ModalProps> = ({
               </div>
               <button
                 onClick={handleAddToCart}
-                className="w-full cursor-pointer bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-lg transition-colors"
+                className="w-full cursor-pointer bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg transition-colors"
               >
                 Add to Cart
               </button>

@@ -15,21 +15,12 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { useUserProfile } from "@/hooks/useAuth";
 import { Input } from "@/components/ui/input";
-import InputMask from "react-input-mask";
-
-interface CartItem {
-  key: string;
-  product_id: string;
-  variant_id: string;
-  name: string;
-  img_url: string;
-  price: number; // Цена варианта продукта
-  quantity: number;
-  extras: Array<{
-    name: string;
-    price: number;
-  }>;
-}
+import { useCreateOrder } from "@/hooks/useOrders";
+import Script from "next/script";
+import { API_URL } from "@/api/base";
+import { IcartItem } from "@/@types/cart";
+import { IextrasOptions } from "@/@types/product";
+import { OrderPayload } from "@/@types/order";
 
 // 1. Добавим функцию форматирования телефона
 const formatPhoneNumber = (value: string) => {
@@ -59,7 +50,7 @@ interface Inputs {
   email: string;
   phone: string;
   address: string;
-  paymentType?: "card" | "cash";
+  paymentType: "card" | "cash";
   comment?: string;
 }
 
@@ -89,17 +80,21 @@ const deliverySchema = yup
   .required() as unknown as yup.ObjectSchema<Inputs>;
 
 const CheckoutForm: React.FC = () => {
+  const [liqPayData, setLiqPayData] = React.useState<{
+    data: string;
+    signature: string;
+  } | null>(null);
   const { data, isLoading, error } = useCart();
   const { data: user } = useUserProfile();
   const { mutate: updateCartItemQuantity } = useUpdateCartItemQuantity();
   const { mutate: clearCart, isPending } = useClearCart();
+  const { mutate: createOrder, isPending: createOrderLoading } =
+    useCreateOrder();
   const router = useRouter();
 
   const {
     register,
     handleSubmit,
-    reset,
-    trigger,
     control,
     setValue,
     watch,
@@ -114,7 +109,7 @@ const CheckoutForm: React.FC = () => {
       phone: "",
       address: "",
       comment: "",
-      paymentType: "card", // Значение по умолчанию
+      paymentType: "cash", // Значение по умолчанию
     },
   });
 
@@ -125,7 +120,7 @@ const CheckoutForm: React.FC = () => {
   }, [user]);
 
   // Функция для расчета общей стоимости позиции
-  const calculateItemTotal = (item: CartItem) => {
+  const calculateItemTotal = (item: IcartItem) => {
     const basePrice = item.price;
     const extrasTotal = item.extras.reduce(
       (sum, extra) => sum + extra.price,
@@ -171,11 +166,73 @@ const CheckoutForm: React.FC = () => {
     (acc, item) => acc + calculateItemTotal(item),
     0
   );
-  const taxes = totalValue ? totalValue * 0.05 : 0; // Например, 5% налог
+  const taxes = totalValue ? totalValue * 0.2 : 0; // Например, 5% налог
   const delivery = 5.0; // Фиксированная стоимость доставки
   const total = totalValue ? totalValue + taxes + delivery : 0;
 
-  const onSubmit: SubmitHandler<Inputs> = (data) => {};
+  const paymentType = watch("paymentType");
+
+  const onSubmit: SubmitHandler<Inputs> = (formData) => {
+    // Преобразуем данные корзины в массив позиций для заказа
+    const orderItems =
+      data?.map((item) => {
+        // Преобразуем доп опции в ожидаемый формат
+        const extrasPayload = item.extras.map((extra: IextrasOptions) => ({
+          id: extra.id, // убедитесь, что у extra есть поле id
+          name: extra.name,
+          price: extra.price,
+          img_url: extra?.img_url,
+        }));
+
+        // Поле product_name берем из item.name
+        // variant_price можем задать как цену варианта из item.price
+        // Вычисляем итоговую стоимость позиции:
+        const unitPrice =
+          item.price +
+          item.extras.reduce(
+            (sum: number, extra: IextrasOptions) => sum + extra.price,
+            0
+          );
+        const subtotal = unitPrice * item.quantity;
+
+        return {
+          product_id: Number(item.product_id),
+          product_name: item.name,
+          variant_id: Number(item.variant_id),
+          variant_price: Number(item.price),
+          extras: extrasPayload,
+          quantity: item.quantity,
+          subtotal: subtotal.toFixed(2),
+        };
+      }) || [];
+
+    const orderPayload: OrderPayload = {
+      first_name: formData.first_name,
+      second_name: formData.second_name,
+      email: formData.email,
+      phone: formData.phone,
+      address: formData.address,
+      comment: formData.comment,
+      payment_type: formData.paymentType,
+      items: orderItems,
+    };
+
+    createOrder(orderPayload, {
+      onSuccess: (newOrder) => {
+        if (formData.paymentType === "card") {
+          fetch(API_URL + `/api/orders/liqpay-init/${newOrder.id}/`)
+            .then((res) => res.json())
+            .then(({ data, signature }) => {
+              setLiqPayData({ data, signature });
+            });
+        } else {
+          router.push(LinkTo.home); // перенаправляем пользователя на страницу благодарности
+        }
+      },
+    });
+
+    // Вызов мутации для создания заказа, например useCreateOrder().mutate(orderPayload)
+  };
 
   return (
     <div className="container mx-auto p-4 sm:p-6 md:p-8 max-[480px]:mt-20 mt-16 mb-10">
@@ -206,7 +263,10 @@ const CheckoutForm: React.FC = () => {
               {data?.map((item) => {
                 const pricePerUnit =
                   item.price +
-                  item.extras.reduce((sum, extra) => sum + extra.price, 0);
+                  item.extras.reduce(
+                    (sum: number, extra: IextrasOptions) => sum + extra.price,
+                    0
+                  );
                 return (
                   <div key={item.key} className="border-b pb-4 last:border-b-0">
                     <div className="flex max-[480px]:items-center  max-[480px]:flex-col justify-between items-start gap-4">
@@ -222,11 +282,11 @@ const CheckoutForm: React.FC = () => {
                         <div className="flex flex-col">
                           <h3 className="font-medium text-lg">{item.name}</h3>
                           <div className="mt-1 text-xs text-gray-600 dark:text-gray-400">
-                            <div>Базовая цена: {item.price.toFixed(2)} $</div>
+                            <div>Basic price: {item.price.toFixed(2)} $</div>
                             {item.extras.length > 0 && (
                               <div className="mt-1">
-                                Дополнительно:
-                                {item.extras.map((extra) => (
+                                Additionaly:
+                                {item.extras.map((extra: IextrasOptions) => (
                                   <div key={extra.name} className="ml-2">
                                     + {extra.name} ({extra.price.toFixed(2)} $)
                                   </div>
@@ -235,7 +295,7 @@ const CheckoutForm: React.FC = () => {
                             )}
                           </div>
                           <div className="mt-1 text-xs text-green-600">
-                            Цена за ед.: {pricePerUnit.toFixed(2)} $
+                            Price per unit: {pricePerUnit.toFixed(2)} $
                           </div>
                         </div>
                       </div>
@@ -380,24 +440,19 @@ const CheckoutForm: React.FC = () => {
                   <input
                     type="radio"
                     id="cash"
-                    name="paymentType"
                     value="cash"
-                    defaultChecked
+                    {...register("paymentType")}
                   />
-                  <label htmlFor="cash" className="cursor-pointer text-sm">
-                    Cash on delivery
-                  </label>
+                  <label htmlFor="cash">Cash on delivery</label>
                 </div>
                 <div className="flex items-center gap-2">
                   <input
                     type="radio"
                     id="card"
-                    name="paymentType"
                     value="card"
+                    {...register("paymentType")}
                   />
-                  <label htmlFor="card" className="cursor-pointer text-sm">
-                    Credit Card
-                  </label>
+                  <label htmlFor="card">Pay with Liqpay</label>
                 </div>
               </div>
             </section>
@@ -410,35 +465,76 @@ const CheckoutForm: React.FC = () => {
               <hr className="mb-4 border-gray-300" />
               <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-2 w-full text-sm">
-                  <span className="flex-1">Total Value</span>
-                  <span className="font-bold text-green-500">
+                  <span className="flex-1 text-nowrap">Total Value</span>
+                  <span className="flex‑1 pt-2 border-b border-dotted w-full" />
+                  <span className="font-bold text-green-500 text-nowrap">
                     {totalValue?.toFixed(2)} $
                   </span>
                 </div>
                 <div className="flex items-center gap-2 w-full text-sm">
                   <span className="flex-1">Taxes</span>
-                  <span className="font-bold text-green-600">
+                  <span className="flex‑1 pt-2 border-b border-dotted w-full" />
+                  <span className="font-bold text-green-600 text-nowrap">
                     {taxes.toFixed(2)} $
                   </span>
                 </div>
                 <div className="flex items-center gap-2 w-full text-sm">
                   <span className="flex-1">Delivery</span>
-                  <span className="font-bold text-green-600">
+                  <span className="flex‑1 pt-2 border-b border-dotted w-full" />
+                  <span className="font-bold text-green-600 text-nowrap">
                     {delivery.toFixed(2)} $
                   </span>
                 </div>
                 <div className="border-t pt-4 flex items-center gap-2 w-full text-xl font-bold">
                   <span className="flex-1">Total</span>
-                  <span className="text-green-400">{total.toFixed(2)} $</span>
+                  <span className="flex‑1 pt-2 border-b border-dotted w-full" />
+                  <span className="text-green-400 text-nowrap">
+                    {total.toFixed(2)} $
+                  </span>
                 </div>
               </div>
-              <Button type="submit" className="mt-6 w-full">
-                Place Order
+              <Button
+                isLoading={createOrderLoading}
+                disabled={createOrderLoading}
+                type="submit"
+                className={`mt-6 w-full ${
+                  paymentType === "card" && "bg-green-400"
+                }`}
+              >
+                {paymentType === "cash" ? "Place Order" : "Pay with Liqpay"}
               </Button>
             </section>
           </div>
         </div>
       </form>
+      {liqPayData && (
+        <>
+          <form
+            id="liqpay-form"
+            method="POST"
+            action="https://www.liqpay.ua/api/3/checkout"
+            acceptCharset="utf-8"
+            style={{ display: "none" }}
+          >
+            <input type="hidden" name="data" value={liqPayData.data} />
+            <input
+              type="hidden"
+              name="signature"
+              value={liqPayData.signature}
+            />
+          </form>
+          {/* Load LiqPay SDK afterInteractive so it doesn't block LCP :contentReference[oaicite:0]{index=0} */}
+          <Script
+            id="liqpay-sdk"
+            src="https://static.liqpay.ua/libjs/sdk.js"
+            strategy="afterInteractive" /* :contentReference[oaicite:1]{index=1} */
+          />
+          {/* Auto‑submit once SDK has loaded */}
+          <Script id="liqpay-submit" strategy="afterInteractive">{`
+      document.getElementById('liqpay-form').submit();
+    `}</Script>
+        </>
+      )}
     </div>
   );
 };

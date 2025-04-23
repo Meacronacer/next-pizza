@@ -6,10 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { BtnLoader } from "@/components/ui/btnLoader";
 import useToastify from "@/hooks/useTostify";
 import { LinkTo } from "@/utils/navigations";
 import BackIcon from "@/assets/back.svg"; // SVG импортирован через SVGR
+import { useRequestResetPassword } from "@/hooks/useAuth";
 
 const schema = object({
   email: string().email("Invalid email").required("Email is required"),
@@ -22,6 +22,7 @@ interface Inputs {
 const ForgotPasswordForm = () => {
   const router = useRouter();
   const { toastInfo, toastError } = useToastify();
+  const { mutate: forgotPassword, isPending } = useRequestResetPassword();
   const {
     register,
     handleSubmit,
@@ -33,6 +34,18 @@ const ForgotPasswordForm = () => {
 
   const onSubmit: SubmitHandler<Inputs> = (data) => {
     // Здесь будет логика отправки запроса для сброса пароля
+    forgotPassword(
+      { email: data.email },
+      {
+        onSuccess: (info) => {
+          toastInfo(info.message);
+          router.push(LinkTo.login);
+        },
+        onError: (info) => {
+          toastError(info?.message || "Failed, please try again later");
+        },
+      }
+    );
   };
 
   return (
@@ -61,10 +74,11 @@ const ForgotPasswordForm = () => {
             containerClassName="grid gap-1"
           />
           <Button
+            isLoading={isPending}
+            disabled={isPending}
             type="submit"
             variant="default"
             className="w-full mt-4"
-            icon={<BtnLoader />}
           >
             Send Reset Link
           </Button>

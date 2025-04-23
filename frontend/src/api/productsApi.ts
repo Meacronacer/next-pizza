@@ -1,6 +1,5 @@
 // hooks/useProducts.ts
-import { IProductsApiResponse } from "@/@types/product";
-import { ProductDetailData } from "@/components/productModal";
+import { IproductDetails, IProductsApiResponse } from "@/@types/product";
 import { useQuery } from "@tanstack/react-query";
 
 const fetchProducts = async (): Promise<IProductsApiResponse> => {
@@ -18,7 +17,7 @@ const fetchProducts = async (): Promise<IProductsApiResponse> => {
 
 const fetchProductDetail = async (
   productId: string
-): Promise<ProductDetailData> => {
+): Promise<IproductDetails> => {
   const res = await fetch(
     process.env.NEXT_PUBLIC_API_URL + `/api/products/get-product/${productId}`,
     {

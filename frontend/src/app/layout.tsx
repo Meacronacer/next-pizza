@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Header from "@/components/header";
 import { ThemeProvider } from "next-themes";
+import { ToastContainer } from "react-toastify";
 import Footer from "@/components/footer";
 import ReactQueryProvider from "@/providers/reactQueryProvider";
 import ScrollToTop from "@/components/scrollToTop";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 export const metadata: Metadata = {
   title: "Next Pizza | Home",
@@ -21,12 +23,21 @@ export default function RootLayout({
       <body className="overflow-x-hidden">
         <main className="max-w-7xl antialiased mx-auto flex flex-col justify-center items-center overflow-x-hidden">
           <ReactQueryProvider>
-            <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-              <Header />
-              {children}
-              <Footer />
-            </ThemeProvider>
+            <GoogleOAuthProvider
+              clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}
+            >
+              <ThemeProvider
+                attribute="class"
+                defaultTheme="system"
+                enableSystem
+              >
+                <Header />
+                {children}
+                <Footer />
+              </ThemeProvider>
+            </GoogleOAuthProvider>
           </ReactQueryProvider>
+          <ToastContainer />
           <ScrollToTop />
         </main>
       </body>

@@ -1,4 +1,5 @@
 "use client";
+import GoogleLoginButton from "@/components/loginWithGoogle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLogin } from "@/hooks/useAuth";
@@ -42,12 +43,13 @@ const LoginForm = () => {
         email: data.email,
         password: data.password,
       },
-      { onSuccess: () => router.push(LinkTo.home) }
+      {
+        onSuccess: () => router.push(LinkTo.home),
+        onError: (info) => {
+          toastError(info.message);
+        },
+      }
     );
-  };
-
-  const handleGoogleLogin = () => {
-    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`;
   };
 
   return (
@@ -56,16 +58,7 @@ const LoginForm = () => {
         <h2 className="text-center text-3xl font-bold mb-6 text-gray-900 dark:text-white">
           Sign In
         </h2>
-        <button
-          onClick={handleGoogleLogin}
-          type="button"
-          className="flex w-full items-center justify-center gap-x-2 border border-gray-300 dark:border-gray-700 rounded-md py-3 mb-6 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-        >
-          <Image width={24} height={24} src="/google.svg" alt="Google" />
-          <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
-            Continue with Google
-          </span>
-        </button>
+        <GoogleLoginButton />
         <div className="flex items-center mb-6">
           <hr className="flex-1 border-gray-300 dark:border-gray-700" />
           <span className="mx-3 text-sm text-gray-500 dark:text-gray-400">
@@ -90,7 +83,13 @@ const LoginForm = () => {
             type="password"
             containerClassName="grid gap-1"
           />
-          <Button type="submit" variant="default" className="w-full mt-6">
+          <Button
+            disabled={isPending}
+            isLoading={isPending}
+            type="submit"
+            variant="default"
+            className="w-full mt-6"
+          >
             Sign In
           </Button>
         </form>

@@ -4,7 +4,7 @@ const Footer = () => {
       <div className="max-w-[1280px] m-auto">
         <div className="grid grid-cols-4 py-10 px-4 gap-4 justify-between max-w-[900px] tablet:grid-cols-2 tablet:text-center">
           <ul className="flex flex-col gap-4">
-            <li className="font-bold text-[18px]">Django Pizza</li>
+            <li className="font-bold text-[18px]">Next Pizza</li>
             <li className=" cursor-pointer hover:text-gray-300">
               <a href="/">About us</a>
             </li>

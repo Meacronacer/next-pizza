@@ -17,6 +17,7 @@ export async function customFetch(
       method: "POST",
       credentials: "include", // чтобы куки передавались
       headers: { "Content-Type": "application/json" },
+      body: "{}",
     });
 
     if (refreshResponse.ok) {
@@ -29,7 +30,7 @@ export async function customFetch(
         credentials: "include",
       });
       // И перенаправляем пользователя на страницу логина
-      window.location.href = LinkTo.login;
+      // window.location.href = LinkTo.login;
       // throw new Error("Session expired. Logged out.");
     }
   }

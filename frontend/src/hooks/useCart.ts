@@ -2,16 +2,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   fetchCart,
   addToCart,
-  AddToCartPayload,
-  UpdateCartPayload,
-  CartItem,
   updateCartItemQuantity,
   editCartItem,
   clearCart,
 } from "../api/cartApi";
+import { IaddToCart, IcartItem, IeditCartItem } from "@/@types/cart";
 
 export function useCart() {
-  return useQuery<CartItem[], Error>({
+  return useQuery<IcartItem[], Error>({
     queryKey: ["cart"],
     queryFn: fetchCart,
   });
@@ -20,7 +18,7 @@ export function useCart() {
 export function useAddToCart() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (payload: AddToCartPayload) => addToCart(payload),
+    mutationFn: (payload: IaddToCart) => addToCart(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cart"] });
     },
@@ -29,7 +27,7 @@ export function useAddToCart() {
 
 export function useUpdateCartItemQuantity() {
   const queryClient = useQueryClient();
-  return useMutation<any, Error, UpdateCartPayload, unknown>({
+  return useMutation({
     mutationFn: updateCartItemQuantity,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cart"] });
@@ -40,7 +38,7 @@ export function useUpdateCartItemQuantity() {
 export function useEditCartItem() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (payload: any) => editCartItem(payload),
+    mutationFn: (payload: IeditCartItem) => editCartItem(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cart"] });
     },

@@ -1,7 +1,5 @@
 import { Iproduct } from "@/@types/product";
-import { IproductListProps } from "./productList";
 import Image from "next/image";
-import { disableScroll } from "@/utils/scrollbar";
 
 interface props {
   product: Iproduct;
@@ -52,7 +50,7 @@ const ProductItem: React.FC<props> = ({ product, setProduct }) => {
         </span>
         <button
           onClick={setProduct}
-          className="bg-blue-500 cursor-pointer hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm transition-colors"
+          className="bg-orange-500 cursor-pointer hover:bg-orange-600 text-white px-4 py-2 rounded-md text-sm transition-colors"
         >
           Choose
         </button>

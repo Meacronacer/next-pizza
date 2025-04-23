@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from products.models import Product, ProductVariant, ExtraOption
 
+
 @api_view(['GET'])
 def get_cart(request):
     """
@@ -143,7 +144,7 @@ def update_cart_item_quantity(request):
     request.session['cart'] = cart
     request.session.modified = True
 
-    return Response(cart, status=status.HTTP_200_OK)
+    return Response({'message': 'item quantity updated'}, status=status.HTTP_200_OK)
 
 
 @api_view(['POST'])
@@ -155,7 +156,6 @@ def edit_cart_item(request):
       - item_key: текущий уникальный ключ позиции в корзине, которую нужно изменить
       - variant_id: новый ID выбранного варианта продукта
       - extras: (опционально) новый список ID доп. опций
-      - quantity: (опционально) новое количество; если не указано – сохраняется текущее количество
 
     Логика:
       1. Находим существующую позицию по item_key.
@@ -260,25 +260,17 @@ def edit_cart_item(request):
     request.session['cart'] = cart
     request.session.modified = True
     
-    return Response(cart, status=status.HTTP_200_OK)
+    return Response({'message': 'cart item edited successfully!'}, status=status.HTTP_200_OK)
 
 
 
 @api_view(['POST'])
-def remove_cart_item(request):
+def clear_cart(request):
     """
-    Удаляет товар из корзины.
-    Ожидает данные:
-      - item_key: уникальный ключ позиции в корзине
+    Очищает корзину, удаляя все товары.
     """
-    item_key = request.data.get("item_key")
-    cart = request.session.get('cart', [])
-    new_cart = [item for item in cart if item.get("key") != item_key]
-
-    if len(new_cart) == len(cart):
-        return Response({"error": "Товар не найден в корзине"}, status=status.HTTP_404_NOT_FOUND)
-
-    request.session['cart'] = new_cart
+    # Присваиваем пустой массив корзине
+    request.session['cart'] = []
     request.session.modified = True
 
-    return Response(new_cart, status=status.HTTP_200_OK)
+    return Response({"message": "Корзина очищена"}, status=status.HTTP_200_OK)

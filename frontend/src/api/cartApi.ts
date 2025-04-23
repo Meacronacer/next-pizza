@@ -1,38 +1,12 @@
+import {
+  IcartItem,
+  IeditCartItem,
+  IupdateCartItemQuantity,
+} from "@/@types/cart";
 import { API_URL } from "./base";
+import { ImessageResponse } from "@/@types/auth";
 
-// api/cart.ts
-export interface CartItem {
-  product_variant_id: number;
-  product_name: string;
-  subtotal: number;
-  key: string;
-  product_id: string;
-  variant_id: string;
-  name: string;
-  img_url: string;
-  price: number; // Цена варианта продукта
-  quantity: number;
-  extras: Array<{
-    name: string;
-    price: number;
-  }>;
-}
-
-export interface AddToCartPayload {
-  variant_id: number;
-  quantity: number;
-}
-
-export interface UpdateCartPayload {
-  item_key: string;
-  quantity: number;
-}
-
-export interface RemoveCartPayload {
-  product_variant_id: number;
-}
-
-export async function fetchCart(): Promise<CartItem[]> {
+export async function fetchCart(): Promise<IcartItem[]> {
   const res = await fetch(API_URL + "/api/cart/", {
     method: "GET",
     credentials: "include",
@@ -58,8 +32,8 @@ export async function addToCart(itemData: any) {
 }
 
 export async function updateCartItemQuantity(
-  payload: UpdateCartPayload
-): Promise<any> {
+  payload: IupdateCartItemQuantity
+): Promise<ImessageResponse> {
   const res = await fetch(API_URL + "/api/cart/update/", {
     method: "POST", // либо PATCH, если это настроено
     credentials: "include",
@@ -74,7 +48,9 @@ export async function updateCartItemQuantity(
   return res.json();
 }
 
-export async function editCartItem(payload: UpdateCartPayload): Promise<any> {
+export async function editCartItem(
+  payload: IeditCartItem
+): Promise<ImessageResponse> {
   const res = await fetch(API_URL + "/api/cart/edit/", {
     method: "POST", // либо PATCH, если это настроено
     credentials: "include",

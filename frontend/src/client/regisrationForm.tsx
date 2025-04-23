@@ -1,9 +1,11 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useRegister } from "@/hooks/useAuth";
 import useToastify from "@/hooks/useTostify";
 import { LinkTo } from "@/utils/navigations";
 import { yupResolver } from "@hookform/resolvers/yup";
+import { secondsInWeek } from "date-fns/constants";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm, SubmitHandler } from "react-hook-form";
@@ -34,6 +36,7 @@ interface Inputs {
 const RegistrationForm = () => {
   const { toastInfo, toastError } = useToastify();
   const router = useRouter();
+  const { mutate: registerUser, isPending } = useRegister();
 
   const {
     register,
@@ -46,7 +49,15 @@ const RegistrationForm = () => {
   });
 
   const onSubmit: SubmitHandler<Inputs> = (data) => {
-    // логика регистрации
+    registerUser(
+      {
+        first_name: data.first_name,
+        second_name: data.second_name,
+        email: data.email,
+        password: data.password,
+      },
+      { onSuccess: () => router.push(LinkTo.home) }
+    );
   };
 
   return (
@@ -98,7 +109,12 @@ const RegistrationForm = () => {
             type="password"
             containerClassName="grid gap-1"
           />
-          <Button type="submit" className="w-full mt-4">
+          <Button
+            disabled={isPending}
+            isLoading={isPending}
+            type="submit"
+            className="w-full mt-4"
+          >
             Sign Up
           </Button>
         </form>

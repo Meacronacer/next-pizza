@@ -1,5 +1,6 @@
 import { VariantProps, cva } from "class-variance-authority";
 import { cn } from "../../utils/twMerge";
+import { BtnLoader } from "./btnLoader";
 
 const ButtonsVariants = cva(
   `flex items-center justify-center gap-x-2 h-[44px] px-5 py-[10px] text-base font-medium rounded-lg transition-colors duration-300
@@ -25,14 +26,12 @@ interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof ButtonsVariants> {
   isLoading?: boolean; // Состояние загрузки
-  icon?: React.ReactNode; // Иконка
 }
 
 const Button: React.FC<ButtonProps> = ({
   className,
   variant,
   isLoading = false,
-  icon,
   children,
   ...props
 }) => {
@@ -45,7 +44,7 @@ const Button: React.FC<ButtonProps> = ({
       disabled={isLoading || props.disabled}
       {...props}
     >
-      {isLoading && icon}
+      {isLoading && <BtnLoader />}
       {children}
     </button>
   );

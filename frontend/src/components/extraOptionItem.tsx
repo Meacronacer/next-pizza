@@ -1,14 +1,8 @@
+import { IextrasOptions } from "@/@types/product";
 import CheckIcon from "../assets/check.svg";
 
-export interface ExtraOptionType {
-  id: number;
-  name: string;
-  img_url: string;
-  price: number;
-}
-
 const ExtraOptionItem: React.FC<{
-  extraOption: ExtraOptionType;
+  extraOption: IextrasOptions;
   isSelected: boolean;
   onToggle: () => void;
 }> = ({ extraOption, isSelected, onToggle }) => {

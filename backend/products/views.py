@@ -1,3 +1,4 @@
+from rest_framework import filters
 from collections import defaultdict
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, RetrieveAPIView
@@ -19,6 +20,17 @@ class ProductListView(ListAPIView):
             grouped[key].append(product)
         return Response(grouped)
 
+
+class ProductFlatListView(ListAPIView):
+    """
+    Возвращает простой список всех продуктов (с опциональным search-фильтром).
+    """
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+
+    # если вы хотите возможность ?search=…
+    filter_backends = [filters.SearchFilter]
+    search_fields   = ['name', 'description']  # добавьте нужные поля
 
 # Новое представление для получения деталей конкретного продукта
 class ProductDetailView(RetrieveAPIView):

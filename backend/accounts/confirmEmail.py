@@ -20,7 +20,7 @@ def verify_confirmation_token(token, max_age=3600):
 
 def send_confirmation_email(user):
     token = generate_confirmation_token(user.email)
-    confirm_url = f"{settings.FRONTEND_URL}/confirm-email/{token}/"
+    confirm_url = f"{settings.API_URL}/api/auth/activate/{token}/"
     subject = "Подтверждение Email"
     message = f"Здравствуйте {user.first_name},\n\nЧтобы подтвердить ваш email, перейдите по ссылке: {confirm_url}\n\nЕсли вы не регистрировались, проигнорируйте это письмо."
     from_email = settings.DEFAULT_FROM_EMAIL

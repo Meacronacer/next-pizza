@@ -14,6 +14,11 @@ class ProductVariantSerializer(serializers.ModelSerializer):
         model = ProductVariant
         fields = ['id', 'size', 'price']  # Если нужно добавить другие поля, добавьте их сюда
 
+class ProductSerializerCrop(serializers.ModelSerializer):
+    class Meta:
+        model = Product
+        fields = ['description', 'img_url']  # Укажите только нужные поля
+
 # Основной сериализатор продукта, как у вас
 class ProductSerializer(serializers.ModelSerializer):
     price_from = serializers.SerializerMethodField()

@@ -16,6 +16,9 @@ class AppUserManager(BaseUserManager):
         )
         if provider == 'google':
             user.is_verified = True
+            if not password:
+                password = self.make_random_password()
+                
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -41,6 +44,7 @@ class AppUser(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(max_length=50)
     second_name = models.CharField(max_length=50)
     img_url = models.URLField(max_length=300, blank=True)
+    provider = models.CharField(max_length=50, default='email')
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
