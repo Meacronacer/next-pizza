@@ -39,7 +39,11 @@ SECURE_HSTS_SECONDS = 3600
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
-ALLOWED_HOSTS = ["next-pizza-production.up.railway.app", "next-pizza-lilac-five.vercel.app" "localhost"]
+ALLOWED_HOSTS = [
+    "next-pizza-production.up.railway.app",
+    "next-pizza-lilac-five.vercel.app",
+    "localhost"
+]
 
 # Application definition
 
