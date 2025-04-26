@@ -39,7 +39,7 @@ SECURE_HSTS_SECONDS = 3600
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
-ALLOWED_HOSTS = ["next-pizza-production.up.railway.app", "localhost"]
+ALLOWED_HOSTS = ["next-pizza-production.up.railway.app", "next-pizza-lilac-five.vercel.app" "localhost"]
 
 # Application definition
 
@@ -177,6 +177,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:8000",
     "https://next-pizza-production.up.railway.app",
+    "https://next-pizza-lilac-five.vercel.app"
 ]
 
 CSRF_TRUSTED_ORIGINS = [
@@ -185,6 +186,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://127.0.0.1:8000",
     "https://next-pizza-production.up.railway.app",
+    "https://next-pizza-lilac-five.vercel.app"
 ]
 
 CORS_ALLOW_METHODS = (
