@@ -1,12 +1,13 @@
-import LoginForm from "@/client/loginForm";
+import LoginForm from "@/forms/loginForm";
 
 export const metadata = {
   title: "Sign in",
   description: "Page for authorization",
+  icon: "/favicon.ico",
 };
 
-const SearchPage = () => {
+const LoginPage = () => {
   return <LoginForm />;
 };
 
-export default SearchPage;
+export default LoginPage;

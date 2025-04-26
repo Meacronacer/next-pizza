@@ -1,38 +1,52 @@
-import { LinkTo } from "@/utils/navigations";
-
 export const API_URL = process.env.NEXT_PUBLIC_API_URL;
+let refreshPromise: Promise<boolean> | null = null;
 
-// Функция-обёртка для fetch, которая при 401 пытается обновить токен,
-// а если обновление не удалось, выполняет логаут (вызов logout-endpoint) и перенаправляет на страницу логина.
 export async function customFetch(
   input: RequestInfo,
   init: RequestInit = {},
   retry: boolean = true
 ): Promise<Response> {
-  let response = await fetch(input, init);
+  // 1) Make the request
+  const response = await fetch(input, { credentials: "include", ...init });
 
+  // 2) If 401 and we're allowed to retry
   if (response.status === 401 && retry) {
-    // Попытка обновить access-токен через refresh-endpoint
-    const refreshResponse = await fetch(`${API_URL}/api/auth/token/refresh/`, {
-      method: "POST",
-      credentials: "include", // чтобы куки передавались
-      headers: { "Content-Type": "application/json" },
-      body: "{}",
-    });
+    // 2a) If no one else is refreshing, start the refresh
+    if (!refreshPromise) {
+      refreshPromise = (async () => {
+        const refreshRes = await fetch(`${API_URL}/api/auth/token/refresh/`, {
+          method: "POST",
+          credentials: "include",
+        });
+        if (!refreshRes.ok) {
+          // If refresh fails, log out & redirect
+          await fetch(`${API_URL}/api/auth/logout/`, {
+            method: "POST",
+            credentials: "include",
+          });
+          //window.location.href = LinkTo.login;
+          return false;
+        }
+        return true;
+      })();
+    }
 
-    if (refreshResponse.ok) {
-      // Если обновление прошло успешно, повторяем исходный запрос (без повторного обновления)
-      response = await customFetch(input, init, false);
+    // 2b) Wait for that shared refresh to complete
+    const ok = await refreshPromise;
+    refreshPromise = null; // reset for future 401s
+
+    // 2c) If refresh succeeded, retry original request once
+    if (ok) {
+      return customFetch(input, init, /* retry= */ false);
     } else {
-      // Если обновление токена не удалось, вызываем logout-endpoint для очистки куки на сервере
       await fetch(`${API_URL}/api/auth/logout/`, {
         method: "POST",
         credentials: "include",
       });
       // И перенаправляем пользователя на страницу логина
       // window.location.href = LinkTo.login;
-      // throw new Error("Session expired. Logged out.");
     }
+    // else: refresh already handled logout/redirect
   }
 
   return response;

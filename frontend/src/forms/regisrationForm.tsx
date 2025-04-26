@@ -5,7 +5,6 @@ import { useRegister } from "@/hooks/useAuth";
 import useToastify from "@/hooks/useTostify";
 import { LinkTo } from "@/utils/navigations";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { secondsInWeek } from "date-fns/constants";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm, SubmitHandler } from "react-hook-form";
@@ -56,7 +55,16 @@ const RegistrationForm = () => {
         email: data.email,
         password: data.password,
       },
-      { onSuccess: () => router.push(LinkTo.home) }
+      {
+        onSuccess: (info) => {
+          toastInfo(info?.message);
+          reset();
+          router.push(LinkTo.login);
+        },
+        onError: (info) => {
+          toastError(info?.message);
+        },
+      }
     );
   };
 

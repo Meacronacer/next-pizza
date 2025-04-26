@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin
+from django.utils.crypto import get_random_string
 
 
 class AppUserManager(BaseUserManager):
@@ -14,10 +15,13 @@ class AppUserManager(BaseUserManager):
             second_name=second_name,
             img_url=img_url
         )
+        user.provider = provider
+        
         if provider == 'google':
             user.is_verified = True
             if not password:
-                password = self.make_random_password()
+                # generate a secure random password of length 12
+                password = get_random_string(12)
                 
         user.set_password(password)
         user.save(using=self._db)

@@ -1,13 +1,15 @@
 export interface Iproduct {
   id: number;
-  key:? string;
+  key: string;
   product_id?: string;
+  variant_id?: number;
   name: string;
   product_type: string;
   img_url: string;
   price_from: number;
   description: string;
   extra_info?: string;
+  extras?: IextrasOptions[];
 }
 
 export interface IextrasOptions {

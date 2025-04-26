@@ -1,8 +1,8 @@
 import { OrderPayload, IpaymentVerify } from "@/@types/order";
-import { API_URL } from "./base";
+import { API_URL, customFetch } from "./base";
 
 export async function fetchUserOrders() {
-  const response = await fetch(`${API_URL}/api/orders/my-orders/`, {
+  const response = await customFetch(`${API_URL}/api/orders/my-orders/`, {
     credentials: "include",
   });
   if (!response.ok) throw new Error("Ошибка при загрузке заказов");

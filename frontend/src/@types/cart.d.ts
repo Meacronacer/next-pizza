@@ -1,8 +1,9 @@
 import { IextrasOptions } from "./product";
 
 export interface IcartItem {
+  id: number;
   key: string;
-  product_id: number;
+  product_id: string;
   variant_id: number;
   extras: IextrasOptions[];
   quantity: number;
@@ -10,6 +11,8 @@ export interface IcartItem {
   name: string;
   img_url: string;
   subtotal: number;
+  price_from?: number;
+  description?: string;
 }
 
 export interface IupdateCartItemQuantity {

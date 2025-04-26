@@ -1,5 +1,6 @@
 import { IextrasOptions } from "@/@types/product";
 import CheckIcon from "../assets/check.svg";
+import Image from "next/image";
 
 const ExtraOptionItem: React.FC<{
   extraOption: IextrasOptions;
@@ -16,9 +17,11 @@ const ExtraOptionItem: React.FC<{
               : "hover:border-orange-100 border-white hover:scale-[1.02] duration-300"
           }`}
     >
-      <img
+      <Image
+        width={100}
+        height={100}
         className="mt-[10px] ml-1"
-        src={extraOption.img_url}
+        src={extraOption?.img_url || ""}
         alt={extraOption.name}
       />
       {isSelected && (

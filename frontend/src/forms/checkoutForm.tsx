@@ -2,9 +2,7 @@
 import { Button } from "@/components/ui/button";
 import React, { useEffect } from "react";
 import {
-  useCart,
   useClearCart,
-  useUpdateCartItemQuantity,
 } from "@/hooks/useCart";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -18,32 +16,12 @@ import { Input } from "@/components/ui/input";
 import { useCreateOrder } from "@/hooks/useOrders";
 import Script from "next/script";
 import { API_URL } from "@/api/base";
-import { IcartItem } from "@/@types/cart";
 import { IextrasOptions } from "@/@types/product";
 import { OrderPayload } from "@/@types/order";
+import useToastify from "@/hooks/useTostify";
+import { formatPhoneNumber } from "@/utils/phoneFormat";
+import { useCartSummary } from "@/hooks/useCartSummary";
 
-// 1. Добавим функцию форматирования телефона
-const formatPhoneNumber = (value: string) => {
-  const numbers = value.replace(/\D/g, "");
-  let formatted = "+380";
-
-  if (numbers.length > 3) {
-    formatted += ` (${numbers.slice(3, 5)}`;
-  }
-  if (numbers.length > 5) {
-    formatted += `) ${numbers.slice(5, 8)}`;
-  }
-  if (numbers.length > 8) {
-    formatted += ` ${numbers.slice(8, 10)}`;
-  }
-  if (numbers.length > 10) {
-    formatted += ` ${numbers.slice(10, 12)}`;
-  }
-
-  return formatted;
-};
-
-// 1. Обновим интерфейс Inputs
 interface Inputs {
   first_name: string;
   second_name: string;
@@ -84,13 +62,24 @@ const CheckoutForm: React.FC = () => {
     data: string;
     signature: string;
   } | null>(null);
-  const { data, isLoading, error } = useCart();
+
+  const router = useRouter();
   const { data: user } = useUserProfile();
-  const { mutate: updateCartItemQuantity } = useUpdateCartItemQuantity();
+  const { toastSuccess } = useToastify();
   const { mutate: clearCart, isPending } = useClearCart();
   const { mutate: createOrder, isPending: createOrderLoading } =
     useCreateOrder();
-  const router = useRouter();
+
+  const {
+    items: data,
+    isLoading,
+    error,
+    subtotal,
+    tax,
+    total,
+    deliveryFee,
+    changeQuantity,
+  } = useCartSummary();
 
   const {
     register,
@@ -117,25 +106,7 @@ const CheckoutForm: React.FC = () => {
     setValue("first_name", user?.first_name);
     setValue("second_name", user?.second_name);
     setValue("email", user?.email);
-  }, [user]);
-
-  // Функция для расчета общей стоимости позиции
-  const calculateItemTotal = (item: IcartItem) => {
-    const basePrice = item.price;
-    const extrasTotal = item.extras.reduce(
-      (sum, extra) => sum + extra.price,
-      0
-    );
-    return (basePrice + extrasTotal) * item.quantity;
-  };
-
-  // Функции для изменения количества товара
-  const handleQuantityChange = (itemKey: string, newQuantity: number) => {
-    updateCartItemQuantity({
-      quantity: newQuantity,
-      item_key: itemKey,
-    });
-  };
+  }, [user, setValue]);
 
   if (isLoading || isPending) {
     return <SkeletonCheckoutPage />;
@@ -160,15 +131,6 @@ const CheckoutForm: React.FC = () => {
         </Button>
       </div>
     );
-
-  // Расчет итоговых сумм
-  const totalValue = data?.reduce(
-    (acc, item) => acc + calculateItemTotal(item),
-    0
-  );
-  const taxes = totalValue ? totalValue * 0.2 : 0; // Например, 5% налог
-  const delivery = 5.0; // Фиксированная стоимость доставки
-  const total = totalValue ? totalValue + taxes + delivery : 0;
 
   const paymentType = watch("paymentType");
 
@@ -226,6 +188,7 @@ const CheckoutForm: React.FC = () => {
               setLiqPayData({ data, signature });
             });
         } else {
+          toastSuccess("Order created successfully!");
           router.push(LinkTo.home); // перенаправляем пользователя на страницу благодарности
         }
       },
@@ -313,7 +276,7 @@ const CheckoutForm: React.FC = () => {
                           <button
                             type="button"
                             onClick={() =>
-                              handleQuantityChange(item.key, item.quantity - 1)
+                              changeQuantity(item.key, item.quantity - 1)
                             }
                             className="w-8 h-8 cursor-pointer flex items-center justify-center rounded-lg bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-sm"
                           >
@@ -325,7 +288,7 @@ const CheckoutForm: React.FC = () => {
                           <button
                             type="button"
                             onClick={() =>
-                              handleQuantityChange(item.key, item.quantity + 1)
+                              changeQuantity(item.key, item.quantity + 1)
                             }
                             className="w-8 h-8 cursor-pointer flex items-center justify-center rounded-lg bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-sm"
                           >
@@ -468,21 +431,21 @@ const CheckoutForm: React.FC = () => {
                   <span className="flex-1 text-nowrap">Total Value</span>
                   <span className="flex‑1 pt-2 border-b border-dotted w-full" />
                   <span className="font-bold text-green-500 text-nowrap">
-                    {totalValue?.toFixed(2)} $
+                    {subtotal.toFixed(2)} $
                   </span>
                 </div>
                 <div className="flex items-center gap-2 w-full text-sm">
                   <span className="flex-1">Taxes</span>
                   <span className="flex‑1 pt-2 border-b border-dotted w-full" />
                   <span className="font-bold text-green-600 text-nowrap">
-                    {taxes.toFixed(2)} $
+                    {tax.toFixed(2)} $
                   </span>
                 </div>
                 <div className="flex items-center gap-2 w-full text-sm">
                   <span className="flex-1">Delivery</span>
                   <span className="flex‑1 pt-2 border-b border-dotted w-full" />
                   <span className="font-bold text-green-600 text-nowrap">
-                    {delivery.toFixed(2)} $
+                    {deliveryFee.toFixed(2)} $
                   </span>
                 </div>
                 <div className="border-t pt-4 flex items-center gap-2 w-full text-xl font-bold">

@@ -93,7 +93,9 @@ class GoogleLoginView(APIView):
         # Валидация токена через Google
         try:
             response = requests.get(
-                f'https://oauth2.googleapis.com/tokeninfo?id_token={token}'
+                "https://www.googleapis.com/oauth2/v3/userinfo",
+                params={"access_token": token},
+                timeout=5
             )
             response.raise_for_status()
             user_data = response.json()
@@ -139,14 +141,23 @@ class GoogleLoginView(APIView):
             key='access_token',
             value=str(refresh.access_token),
             httponly=True,
-            samesite='Lax'
+            secure=True,            # обязательно для SameSite=None
+            samesite='None',          # разрешить кросс‑доменную отправку
+            max_age=60 * 60 * 24 * 7,
+
         )
         response.set_cookie(
             key='refresh_token',
             value=str(refresh),
             httponly=True,
-            samesite='Lax'
+            secure=True,            # обязательно для SameSite=None
+            samesite='None',          # разрешить кросс‑доменную отправку
+            max_age=60 * 60 * 24 * 7,
+
         )
+
+        del response.data['access']
+        del response.data['refresh']
         
         return response
 
@@ -161,7 +172,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 value=response.data['access'],
                 httponly=True,
                 secure=True,            # обязательно для SameSite=None
-                max_age=60 * 15,  # 15 минут
+                max_age=60 * 60 * 24 * 7,
                 samesite='None',          # разрешить кросс‑доменную отправку
 
             )
@@ -208,10 +219,13 @@ class CustomTokenRefreshView(TokenRefreshView):
                 value=data.get('access'),
                 httponly=True,
                 secure=True,            # обязательно для SameSite=None
-                max_age=300,  # 5 минут
                 samesite='None',          # разрешить кросс‑доменную отправку
+                max_age=60 * 60 * 24 * 7,
 
             )
+
+            del response.data['access']
+
         return response
 
 

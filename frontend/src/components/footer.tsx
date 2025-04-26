@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const Footer = () => {
   return (
     <section className="pb-10 h-full w-full">
@@ -6,46 +8,46 @@ const Footer = () => {
           <ul className="flex flex-col gap-4">
             <li className="font-bold text-[18px]">Next Pizza</li>
             <li className=" cursor-pointer hover:text-gray-300">
-              <a href="/">About us</a>
+              <Link href="/">About us</Link>
             </li>
             <li className=" cursor-pointer hover:text-gray-300">
-              <a href="/">Django-book</a>
+              <Link href="/">Django-book</Link>
             </li>
             <li className=" cursor-pointer hover:text-gray-300">
-              <a href="/">Blog power of mind</a>
+              <Link href="/">Blog power of mind</Link>
             </li>
           </ul>
           <ul className="flex flex-col gap-4">
             <li className="font-bold text-[18px]">Work</li>
             <li className=" cursor-pointer hover:text-gray-300">
-              <a href="/">At the pizzeria</a>
+              <Link href="/">At the pizzeria</Link>
             </li>
           </ul>
           <ul className="flex flex-col gap-4">
             <li className="font-bold text-[18px]">For partners</li>
             <li className=" cursor-pointer hover:text-gray-300">
-              <a href="/">Franchise</a>
+              <Link href="/">Franchise</Link>
             </li>
             <li className=" cursor-pointer hover:text-gray-300">
-              <a href="/">investments</a>
+              <Link href="/">investments</Link>
             </li>
             <li className=" cursor-pointer hover:text-gray-300">
-              <a href="/">For suppliers</a>
+              <Link href="/">For suppliers</Link>
             </li>
             <li className=" cursor-pointer hover:text-gray-300">
-              <a href="/">Offer a room</a>
+              <Link href="/">Offer a room</Link>
             </li>
           </ul>
           <ul className="flex flex-col gap-4">
             <li className="font-bold text-[18px]">This is interesting</li>
             <li className=" cursor-pointer hover:text-gray-300">
-              <a href="/">Why do we cook without gloves?</a>
+              <Link href="/">Why do we cook without gloves?</Link>
             </li>
             <li className=" cursor-pointer hover:text-gray-300">
-              <a href="/">Excursions and master classes</a>
+              <Link href="/">Excursions and master classes</Link>
             </li>
             <li className=" cursor-pointer hover:text-gray-300">
-              <a href="/">Corporate orders</a>
+              <Link href="/">Corporate orders</Link>
             </li>
           </ul>
         </div>
@@ -71,13 +73,13 @@ const Footer = () => {
         <ul className="flex flex-wrap gap-4 px-4 text-[18px] font-bold items-center justify-center">
           <li>Next Pizza © 2024</li>
           <li className="cursor-pointer hover:text-gray-500">
-            <a href="/">Legal information</a>
+            <Link href="/">Legal information</Link>
           </li>
           <li className="cursor-pointer hover:text-gray-500">
-            <a href="/">Calorie content and composition</a>
+            <Link href="/">Calorie content and composition</Link>
           </li>
           <li className="cursor-pointer hover:text-gray-500">
-            <a href="/">Help</a>
+            <Link href="/">Help</Link>
           </li>
         </ul>
       </div>

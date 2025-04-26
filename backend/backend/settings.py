@@ -25,14 +25,18 @@ dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-#_^nx2m$9rblff%s%!4(wr&zo6$&)g$d*$&zg0j5xx)ll-b2vd'
+SECRET_KEY = os.getenv('SECRET_KEY')
+DEBUG = os.getenv('DEBUG')
 
 AUTH_USER_MODEL = "accounts.AppUser"
 
+SECURE_HSTS_INCLUDE_SUBDOMAINS = os.getenv('SECURE_HSTS_INCLUDE_SUBDOMAINS')
+SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT') if not DEBUG else True
+SECURE_HSTS_PRELOAD = os.getenv('SECURE_HSTS_PRELOAD') if not DEBUG else True
+SECURE_HSTS_SECONDS = 3600 
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
 ALLOWED_HOSTS = []
 
@@ -62,7 +66,15 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',  # только JSON
+    ],
 }
+
+if DEBUG:
+    REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'].append(
+        'rest_framework.renderers.BrowsableAPIRenderer'
+)
 
 
 SIMPLE_JWT = {
@@ -93,7 +105,6 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
     'auditlog.middleware.AuditlogMiddleware',
-
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -146,18 +157,6 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Измените эти значения
-CSRF_COOKIE_SECURE = False  # Для HTTP разработки
-SESSION_COOKIE_SECURE = False  # Для HTTP разработки
-CSRF_COOKIE_SAMESITE = 'Lax'  # Или 'None' если используете Cross-Site
-SESSION_COOKIE_SAMESITE = 'Lax'
-CORS_ALLOW_CREDENTIALS = True
-
-# Добавьте эти настройки
-SESSION_COOKIE_DOMAIN = None
-SESSION_COOKIE_PATH = '/'
-SESSION_SAVE_EVERY_REQUEST = True
-
 CORS_ALLOW_HEADERS = [
     'accept',
     'accept-encoding',
@@ -193,17 +192,28 @@ CORS_ALLOW_METHODS = (
 )
 CORS_ALLOW_CREDENTIALS = True
 
+# Измените эти значения
+CSRF_COOKIE_SECURE = os.getenv('CSRF_COOKIE_SECURE') if DEBUG else False # Для HTTP разработки
+SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE") if DEBUG else False  # Для HTTP разработки
+CSRF_COOKIE_SAMESITE = os.getenv('CSRF_COOKIE_SAMESITE')  # Или 'None' если используете Cross-Site
+SESSION_COOKIE_SAMESITE = os.getenv('SESSION_COOKIE_SAMESITE')
+
+# Или 'None' если используете Cross-Site
+SESSION_COOKIE_DOMAIN = None
+SESSION_COOKIE_PATH = '/'
+SESSION_SAVE_EVERY_REQUEST = True
+
+
 CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
 CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET')
-
 
 FRONTEND_URL = os.getenv('CLIENT_URL')
 API_URL = os.getenv('API_URL')
 
+# Настройки для LiqPay
 LIQPAY_PUBLIC_KEY = os.getenv('LIQPAY_PUBLIC_KEY')
 LIQPAY_PRIVATE_KEY = os.getenv('LIQPAY_PRIVATE_KEY')
 LIQPAY_CALLBACK_URL = os.getenv('LIQPAY_CALLBACK_URL')
-#LIQPAY_RESULT_URL = os.getenv('LIQPAY_RESULT_URL', 'http://localhost:3000/payment-success')
 LIQPAY_RESULT_URL = f"{os.getenv('CLIENT_URL')}/payment-success?order_id={{order_id}}&token={{token}}"
 
 

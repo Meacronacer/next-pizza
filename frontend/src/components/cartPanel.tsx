@@ -1,9 +1,10 @@
-import { useUpdateCartItemQuantity } from "@/hooks/useCart";
 import React, { useState } from "react";
 import ProductModal from "./productModal";
 import { LinkTo } from "@/utils/navigations";
 import { useRouter } from "next/navigation";
 import { IcartItem } from "@/@types/cart";
+import { useCartSummary } from "@/hooks/useCartSummary";
+import Image from "next/image";
 
 interface CartPanelProps {
   open: boolean;
@@ -13,29 +14,11 @@ interface CartPanelProps {
 
 const CartPanel: React.FC<CartPanelProps> = ({ open, onClose, cartItems }) => {
   const router = useRouter();
-  const [editProduct, setEditProduct] = useState<any>({});
+  const [editProduct, setEditProduct] = useState<IcartItem | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const { mutate: updateCartItemQuantity, isPending } =
-    useUpdateCartItemQuantity();
 
-  const SHIPPING_FEE = 5;
-  const TAX_RATE = 0.2;
-
-  const calculateItemTotal = (item: IcartItem) => {
-    const basePrice = item.price;
-    const extrasTotal = item.extras.reduce(
-      (sum, extra) => sum + extra.price,
-      0
-    );
-    return (basePrice + extrasTotal) * item.quantity;
-  };
-
-  const subtotal = cartItems.reduce(
-    (acc, item) => acc + calculateItemTotal(item),
-    0
-  );
-  const tax = subtotal * TAX_RATE;
-  const total = subtotal + tax + SHIPPING_FEE;
+  const { isUpdating, subtotal, tax, total, deliveryFee, changeQuantity } =
+    useCartSummary();
 
   return (
     <div
@@ -46,7 +29,7 @@ const CartPanel: React.FC<CartPanelProps> = ({ open, onClose, cartItems }) => {
           open ? "opacity-50" : "opacity-0"
         }
         `}
-        onClick={isPending ? undefined : onClose}
+        onClick={isUpdating ? undefined : onClose}
       />
       <div
         className={`fixed right-0 top-0 h-dvh w-80 dark:bg-gray-800 bg-white shadow-xl transform transition-all duration-300 flex flex-col ${
@@ -54,20 +37,20 @@ const CartPanel: React.FC<CartPanelProps> = ({ open, onClose, cartItems }) => {
         }
         `}
       >
-        {isPending && (
+        {isUpdating && (
           <div className="absolute inset-0 bg-black opacity-50 w-full h-dvh z-50 flex items-center justify-center">
             <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent" />
           </div>
         )}
         <div
           className={`p-4 border-b flex-shrink-0 ${
-            isPending ? "opacity-50" : ""
+            isUpdating ? "opacity-50" : ""
           }`}
         >
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-bold">Cart</h2>
             <button
-              onClick={isPending ? undefined : onClose}
+              onClick={isUpdating ? undefined : onClose}
               className="cursor-pointer px-2 duration-200 text-2xl hover:bg-black/50 rounded-full"
             >
               x
@@ -76,7 +59,7 @@ const CartPanel: React.FC<CartPanelProps> = ({ open, onClose, cartItems }) => {
         </div>
         <div
           className={`flex-1 overflow-y-auto px-4 ${
-            isPending ? "opacity-50 pointer-events-none" : ""
+            isUpdating ? "opacity-50 pointer-events-none" : ""
           }`}
         >
           {cartItems.length === 0 ? (
@@ -90,16 +73,18 @@ const CartPanel: React.FC<CartPanelProps> = ({ open, onClose, cartItems }) => {
               );
               const pricePerUnit = basePrice + extrasTotal;
               return (
-                <div key={item.key} className="py-4 border-b last:border-b-0">
+                <div key={item?.key} className="py-4 border-b last:border-b-0">
                   <div className="flex justify-between items-start">
                     <div className="flex gap-3">
-                      <img
-                        src={item.img_url}
-                        alt={item.name}
+                      <Image
+                        width={80}
+                        height={80}
+                        src={item?.img_url}
+                        alt={item?.name}
                         className="w-16 h-16 object-cover rounded"
                       />
                       <div className="flex flex-col">
-                        <h3 className="font-medium">{item.name}</h3>
+                        <h3 className="font-medium">{item?.name}</h3>
                         <div className="text-gray-500 text-xs mt-1">
                           Basic price:{" "}
                           <span className="text-green-600">
@@ -123,8 +108,11 @@ const CartPanel: React.FC<CartPanelProps> = ({ open, onClose, cartItems }) => {
                         <div className="text-xs text-green-500 mt-1">
                           Price per unit: {pricePerUnit.toFixed(2)} $
                         </div>
-                        <p className="text-sm text-green-400 underline mt-1">
-                          Total: {(pricePerUnit * item.quantity).toFixed(2)} $
+                        <p className="text-sm text-red-400 border-b mt-1">
+                          Total:{" "}
+                          <span className="text-green-400">
+                            {(pricePerUnit * item.quantity).toFixed(2)} ${" "}
+                          </span>
                         </p>
                       </div>
                     </div>
@@ -140,12 +128,9 @@ const CartPanel: React.FC<CartPanelProps> = ({ open, onClose, cartItems }) => {
                       </button>
                       <div className="flex items-center gap-2">
                         <button
-                          disabled={isPending}
+                          disabled={isUpdating}
                           onClick={() =>
-                            updateCartItemQuantity({
-                              item_key: item.key,
-                              quantity: item.quantity - 1,
-                            })
+                            changeQuantity(item.key, item.quantity - 1)
                           }
                           className="w-6 h-6 pb-1 flex cursor-pointer items-center justify-center rounded bg-orange-500 hover:bg-orange-700 transition"
                         >
@@ -153,12 +138,9 @@ const CartPanel: React.FC<CartPanelProps> = ({ open, onClose, cartItems }) => {
                         </button>
                         <span>{item.quantity}</span>
                         <button
-                          disabled={isPending}
+                          disabled={isUpdating}
                           onClick={() =>
-                            updateCartItemQuantity({
-                              item_key: item.key,
-                              quantity: item.quantity + 1,
-                            })
+                            changeQuantity(item.key, item.quantity + 1)
                           }
                           className="w-6 h-6 rounded cursor-pointer bg-orange-500 hover:bg-orange-700 transition"
                         >
@@ -175,7 +157,7 @@ const CartPanel: React.FC<CartPanelProps> = ({ open, onClose, cartItems }) => {
         {cartItems.length > 0 && (
           <div
             className={`p-4 border-t bg-white dark:bg-gray-800 flex-shrink-0 ${
-              isPending ? "opacity-50" : ""
+              isUpdating ? "opacity-50" : ""
             }`}
           >
             {/* Подытог */}
@@ -206,7 +188,7 @@ const CartPanel: React.FC<CartPanelProps> = ({ open, onClose, cartItems }) => {
                 <span>Delivery</span>
                 <span className="flex‑1 pt-2 border-b border-dotted w-full mx-1" />
                 <span className=" text-nowrap text-green-600">
-                  {SHIPPING_FEE.toFixed(2)} $
+                  {deliveryFee.toFixed(2)} $
                 </span>
               </div>
             </div>
@@ -227,9 +209,9 @@ const CartPanel: React.FC<CartPanelProps> = ({ open, onClose, cartItems }) => {
                 onClose();
                 router.push(LinkTo.checkout);
               }}
-              className="w-full bg-orange-500 cursor-pointer hover:bg-orange-600 text-white py-3 rounded-lg transition-colors"
+              className="w-full  font-bold bg-orange-500 cursor-pointer hover:bg-orange-600 text-white py-3 rounded-lg transition-colors"
             >
-              Оформить заказ
+              Place an order
             </button>
           </div>
         )}
@@ -239,8 +221,8 @@ const CartPanel: React.FC<CartPanelProps> = ({ open, onClose, cartItems }) => {
         product={editProduct}
         isOpen={showModal}
         onClose={() => setShowModal(false)}
-        extras={editProduct.extras}
-        variant_id={editProduct.variant_id}
+        extras={editProduct?.extras}
+        variant_id={editProduct?.variant_id}
       />
     </div>
   );

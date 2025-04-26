@@ -21,7 +21,7 @@ class Product(models.Model):
     SNACKS = 'Snacks'
     BEVERAGES = 'Beverages'
     COCKTAILS = 'Cocktails'
-    COFE = 'Cofe'
+    COFFE = 'Coffe'
     DESERTS = 'Desserts'
     SAUCES = 'Sauces'
 
@@ -30,10 +30,11 @@ class Product(models.Model):
         (SNACKS, 'Snacks'),
         (BEVERAGES, 'Beverages'),
         (COCKTAILS, 'Cocktails'),
-        (COFE, 'Cofe'),
+        (COFFE, 'Coffe'),
         (DESERTS, 'Desserts'),
         (SAUCES, 'Sauces'),
     ]
+
 
     name = models.CharField(max_length=50)
     product_type = models.CharField(max_length=50, choices=PRODUCT_TYPE_CHOICES)

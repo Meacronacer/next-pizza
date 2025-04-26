@@ -1,5 +1,6 @@
 "use client";
-import { API_URL } from "@/api/base";
+import { useLoginWithGoogle } from "@/hooks/useAuth";
+import useToastify from "@/hooks/useTostify";
 import { LinkTo } from "@/utils/navigations";
 import { useGoogleLogin } from "@react-oauth/google";
 import Image from "next/image";
@@ -7,20 +8,19 @@ import { useRouter } from "next/navigation";
 
 const GoogleLoginButton = () => {
   const router = useRouter();
+  const { toastError } = useToastify();
+  const { mutate: loginUserWithGoogle } = useLoginWithGoogle();
+
   const login = useGoogleLogin({
     onSuccess: async (response) => {
-      const res = await fetch(API_URL + "/api/auth/google/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      loginUserWithGoogle(response.access_token, {
+        onSuccess: () => {
+          router.push(LinkTo.home);
         },
-        body: JSON.stringify({ token: response.access_token }),
+        onError: (error) => {
+          toastError(error.message);
+        },
       });
-
-      if (res.ok) {
-        // Перенаправление или обновление состояния
-        router.push(LinkTo.home);
-      }
     },
   });
 

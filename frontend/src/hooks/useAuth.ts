@@ -3,8 +3,7 @@ import {
   ILoginResponse,
   ImessageResponse,
   IregisterForm,
-  IresetPasswordConfirms,
-  IresetPasswordForm,
+  IresetPasswordConfirm,
 } from "@/@types/auth";
 import {
   registerUser,
@@ -13,6 +12,7 @@ import {
   fetchUserProfile,
   confirmPasswordReset,
   logout,
+  loginUserWithGoogle,
 } from "@/api/authApi";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -45,14 +45,29 @@ export function useLogin() {
     },
   });
 }
+
+export function useLoginWithGoogle() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: loginUserWithGoogle,
+    onSuccess: () => {
+      // При успешном логине сервер установил токены в куки,
+      // дальше можно инвалидировать запрос профиля, чтобы он повторился
+      queryClient.invalidateQueries({ queryKey: ["userProfile"] });
+      // Дополнительно можно обновить глобальное состояние авторизации,
+      // перенаправить пользователя и т.п.
+    },
+  });
+}
+
 export function useRequestResetPassword() {
-  return useMutation<ImessageResponse, Error, IresetPasswordForm>({
+  return useMutation<ImessageResponse, Error, { email: string }>({
     mutationFn: requestPasswordReset,
   });
 }
 
 export function useResetPasswordConfirm() {
-  return useMutation<ImessageResponse, Error, IresetPasswordConfirms>({
+  return useMutation<ImessageResponse, Error, IresetPasswordConfirm>({
     mutationFn: confirmPasswordReset,
   });
 }

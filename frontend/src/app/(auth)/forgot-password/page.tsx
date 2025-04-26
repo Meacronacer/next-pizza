@@ -1,12 +1,13 @@
-import ForgotPasswordForm from "@/client/forgotPasswordForm";
+import ForgotPasswordForm from "@/forms/forgotPasswordForm";
 
 export const metadata = {
   title: "Forgot Password",
   description: "Page for reset password with email",
+  icon: "/favicon.ico",
 };
 
-const SearchPage = () => {
+const ForgotPasswordPage = () => {
   return <ForgotPasswordForm />;
 };
 
-export default SearchPage;
+export default ForgotPasswordPage;

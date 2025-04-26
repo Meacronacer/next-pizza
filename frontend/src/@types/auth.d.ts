@@ -8,9 +8,7 @@ export interface IregisterForm extends IloginForm {
   second_name: string;
 }
 
-export interface IresetPasswordForm extends Pick<IloginForm, "email"> {}
-
-export interface IresetPasswordConfirms {
+export interface IresetPasswordConfirm {
   uid: string | string[];
   token: string | string[];
   new_password: string;

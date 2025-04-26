@@ -18,10 +18,18 @@ const ProductList: React.FC<IproductListProps> = ({
 }) => {
   const { data, isLoading, error } = useProducts();
 
-  if (error) return <p>Error loading products.</p>;
+  if (error) return <p className="py-40">Error loading products.</p>;
 
   // Список категорий по умолчанию для скелетонов
-  const defaultCategories = ["pizzas", "snacks", "cocktails", "cofe"];
+  const defaultCategories = [
+    "pizzas",
+    "snacks",
+    "beverages",
+    "cocktails",
+    "coffes",
+    "desserts",
+    "sauces",
+  ];
 
   // Если загрузка не идет и data существует – приводим Object.entries к нужному типу,
   // иначе создаём для скелетонов массив такого же типа:
@@ -33,7 +41,11 @@ const ProductList: React.FC<IproductListProps> = ({
   return (
     <div>
       {categories.map(([category, items], index) => (
-        <section key={index} className="mb-10">
+        <section
+          id={category.toLowerCase()}
+          key={index}
+          className="mb-10 scroll-mt-32"
+        >
           <h2 className="text-2xl font-bold mb-4 capitalize">
             {isLoading ? (
               <div className="w-1/2 h-8 bg-gray-300 dark:bg-gray-700 rounded animate-pulse" />

@@ -5,9 +5,10 @@ import React, { useEffect, useState } from "react";
 import ExtraOptionItem from "./extraOptionItem";
 import Image from "next/image";
 import { enableScroll } from "@/utils/scrollbar";
+import { IcartItem } from "@/@types/cart";
 
 interface ModalProps {
-  product: Iproduct | null;
+  product: Iproduct | IcartItem | null;
   isOpen: boolean;
   onClose: () => void;
   extras?: IextrasOptions[];
@@ -27,7 +28,7 @@ const ProductModal: React.FC<ModalProps> = ({
     changeMode
       ? product?.product_id || ""
       : product?.id
-      ? product.id.toString()
+      ? product?.id.toString()
       : ""
   );
   const productData = data as IproductDetails;

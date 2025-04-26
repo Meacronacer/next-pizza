@@ -1,12 +1,11 @@
 "use client";
-import GoogleLoginButton from "@/components/loginWithGoogle";
+import GoogleLoginButton from "@/forms/loginWithGoogle";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLogin } from "@/hooks/useAuth";
 import useToastify from "@/hooks/useTostify";
 import { LinkTo } from "@/utils/navigations";
 import { yupResolver } from "@hookform/resolvers/yup";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm, SubmitHandler } from "react-hook-form";
@@ -30,7 +29,6 @@ const LoginForm = () => {
   const {
     register,
     handleSubmit,
-    reset,
     formState: { errors },
   } = useForm<Inputs>({
     resolver: yupResolver(userSchema),
@@ -106,7 +104,7 @@ const LoginForm = () => {
             href={LinkTo.register}
             className="text-sm hover:underline text-gray-600 dark:text-gray-300"
           >
-            Don't have an account? Sign Up
+            Don&apos;t have an account? Sign Up
           </Link>
         </div>
       </div>

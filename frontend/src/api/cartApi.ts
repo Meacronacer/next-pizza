@@ -1,4 +1,5 @@
 import {
+  IaddToCart,
   IcartItem,
   IeditCartItem,
   IupdateCartItemQuantity,
@@ -17,7 +18,9 @@ export async function fetchCart(): Promise<IcartItem[]> {
   return res.json();
 }
 
-export async function addToCart(itemData: any) {
+export async function addToCart(
+  itemData: IaddToCart
+): Promise<ImessageResponse> {
   const response = await fetch(API_URL + "/api/cart/add/", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

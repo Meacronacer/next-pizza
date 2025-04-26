@@ -1,11 +1,12 @@
-import CheckoutForm from "@/client/checkoutForm";
+import CheckoutForm from "@/forms/checkoutForm";
 
 export const metadata = {
   title: "Checkout",
   description: "Page for submit order",
+  icon: "/favicon.ico",
 };
 
-const CheckoutPage = async () => {
+const CheckoutPage = () => {
   return <CheckoutForm />;
 };
 

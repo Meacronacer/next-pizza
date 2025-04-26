@@ -2,8 +2,8 @@ class NavigationsLinks {
   home = "/";
   login = "/login";
   register = "/registration";
+  orders = "/orders";
   checkout = "/checkout";
-  profile = "/profile";
   forgotPassword = "/forgot-password";
 }
 

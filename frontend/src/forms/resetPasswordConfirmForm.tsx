@@ -4,7 +4,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { object, string, ref } from "yup";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import useToastify from "@/hooks/useTostify";
 import { useResetPasswordConfirm } from "@/hooks/useAuth";
 
@@ -25,7 +25,6 @@ interface Inputs {
 const ResetPasswordConfirmForm = () => {
   const router = useRouter();
   const { mutate: resetPassword, isPending } = useResetPasswordConfirm();
-  const searchParams = useSearchParams();
   const { uidb64, token } = useParams();
   const { toastInfo, toastError } = useToastify();
   const {

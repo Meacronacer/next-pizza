@@ -2,7 +2,7 @@ from rest_framework import serializers
 from .models import Order, OrderItem
 from decimal import Decimal, ROUND_HALF_UP
 from products.serializers import ProductSerializerCrop
-from products.models import Product
+
 
 class OrderItemSerializer(serializers.ModelSerializer):
     product_data = serializers.SerializerMethodField()
@@ -16,12 +16,11 @@ class OrderItemSerializer(serializers.ModelSerializer):
         read_only_fields = ("subtotal",)
 
     def get_product_data(self, obj):
-        product = self.context['product_map'].get(obj.product_id)
-        if not product:
-            return None
-        return ProductSerializerCrop(product).data
-
-
+        # безопасно берем map, если его нет — возвращаем None
+        product_map = self.context.get('product_map', {})
+        product = product_map.get(obj.product_id)
+        return ProductSerializerCrop(product).data if product else None
+    
 
 class OrderCreateSerializer(serializers.Serializer):
     first_name = serializers.CharField(max_length=50)
