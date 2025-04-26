@@ -27,7 +27,7 @@ dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY')
-DEBUG = os.getenv('DEBUG')
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 AUTH_USER_MODEL = "accounts.AppUser"
 
