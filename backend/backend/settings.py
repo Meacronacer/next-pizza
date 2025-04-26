@@ -175,14 +175,17 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-    "https://next-pizza-production.up.railway.app",
-    "https://next-pizza-lilac-five.vercel.app"
-]
+#CORS_ALLOWED_ORIGINS = 
+CORS_ALLOW_ALL_ORIGINS = True
+
+#[
+#    "http://localhost:3000",
+#    "http://127.0.0.1:3000",
+#    "http://localhost:8000",
+#    "http://127.0.0.1:8000",
+#    "https://next-pizza-production.up.railway.app",
+#    "https://next-pizza-lilac-five.vercel.app"
+#]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
