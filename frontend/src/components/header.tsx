@@ -21,8 +21,8 @@ const navItems = [
   { id: "snacks", label: "Snacks" },
   { id: "beverages", label: "Beverages" },
   { id: "cocktails", label: "Cocktails" },
-  { id: "coffes", label: "Coffes" },
-  { id: "desserts", label: "Sesserts" },
+  { id: "coffe", label: "Coffes" },
+  { id: "desserts", label: "Desserts" },
   { id: "sauces", label: "Sauces" },
 ];
 

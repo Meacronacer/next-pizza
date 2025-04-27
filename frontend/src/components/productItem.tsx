@@ -26,9 +26,9 @@ const ProductItem: React.FC<props> = ({ product, setProduct }) => {
           onClick={setProduct}
           className="text-xl cursor-pointer font-semibold text-gray-800 dark:text-gray-100 mb-2"
         >
-          {product.name}
+          {product?.name}
         </h3>
-        {product.description && (
+        {product?.description && (
           <p
             onClick={setProduct}
             className="text-sm cursor-pointer text-gray-600 dark:text-gray-300 mb-4"

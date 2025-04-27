@@ -242,18 +242,27 @@ const ProductModal: React.FC<ModalProps> = ({
 
             {/* Футер */}
             <div className="mt-4">
-              <div className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">
-                Total Price:{" "}
-                <span className="text-green-400">
-                  ${calculateTotalPrice().toFixed(2)}
-                </span>
-              </div>
-              <button
-                onClick={handleAddToCart}
-                className="w-full cursor-pointer bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg transition-colors"
-              >
-                Add to Cart
-              </button>
+              {productDetailLoading ? (
+                <div className="animate-pulse space-y-3">
+                  <div className="h-6 bg-gray-300 dark:bg-gray-600 rounded w-1/3" />
+                  <div className="h-10 bg-gray-300 dark:bg-gray-600 rounded w-full" />
+                </div>
+              ) : (
+                <>
+                  <div className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">
+                    Total Price:{" "}
+                    <span className="text-green-400">
+                      ${calculateTotalPrice().toFixed(2)}
+                    </span>
+                  </div>
+                  <button
+                    onClick={handleAddToCart}
+                    className="w-full cursor-pointer bg-orange-600 hover:bg-orange-700 text-white py-3 rounded-lg transition-colors"
+                  >
+                    {changeMode ? "Update Cart" : "Add to Cart"}
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>

@@ -1,4 +1,5 @@
-export const API_URL = process.env.NEXT_PUBLIC_API_URL;
+export const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 let refreshPromise: Promise<boolean> | null = null;
 
 export async function customFetch(
@@ -38,13 +39,6 @@ export async function customFetch(
     // 2c) If refresh succeeded, retry original request once
     if (ok) {
       return customFetch(input, init, /* retry= */ false);
-    } else {
-      await fetch(`${API_URL}/api/auth/logout/`, {
-        method: "POST",
-        credentials: "include",
-      });
-      // И перенаправляем пользователя на страницу логина
-      // window.location.href = LinkTo.login;
     }
     // else: refresh already handled logout/redirect
   }

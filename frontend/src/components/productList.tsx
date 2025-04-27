@@ -26,7 +26,7 @@ const ProductList: React.FC<IproductListProps> = ({
     "snacks",
     "beverages",
     "cocktails",
-    "coffes",
+    "coffe",
     "desserts",
     "sauces",
   ];
@@ -59,7 +59,7 @@ const ProductList: React.FC<IproductListProps> = ({
                 <SkeletonProductItem key={i} />
               ) : (
                 <ProductItem
-                  key={(item as Iproduct)?.id}
+                  key={i}
                   product={item as Iproduct}
                   setProduct={() => {
                     setProduct(item as Iproduct);
