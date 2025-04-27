@@ -99,7 +99,6 @@ SIMPLE_JWT = {
 MIDDLEWARE = [
     #installed middlewars
     "corsheaders.middleware.CorsMiddleware",
-    "django.middleware.common.CommonMiddleware",
     #by deffault
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
