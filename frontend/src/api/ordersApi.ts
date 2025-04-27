@@ -28,12 +28,35 @@ export async function createOrder(payload: OrderPayload) {
   return res.json();
 }
 
-export async function verifyPayment({ orderId, token }: IpaymentVerify) {
-  const res = await fetch(`${API_URL}/api/orders/${orderId}?token=${token}/`, {
+export async function liqpayInit(orderId: string) {
+  const res = await fetch(`${API_URL}/api/orders/liqpay-init/${orderId}/`, {
+    method: "GET",
     credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
   });
   if (!res.ok) {
-    throw new Error(`Order verification failed: ${res.statusText}`);
+    const errorData = await res.json();
+    throw new Error(errorData.error || "Liqpay init failed");
+  }
+
+  return res.json();
+}
+
+export async function verifyPayment({ orderId, token }: IpaymentVerify) {
+  const res = await fetch(`${API_URL}/api/orders/${orderId}?token=${token}/`, {
+    method: "GET",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+  });
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.error || "Payment verification failed");
   }
 
   return res.json();

@@ -1,5 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createOrder, fetchUserOrders, verifyPayment } from "@/api/ordersApi";
+import {
+  createOrder,
+  fetchUserOrders,
+  liqpayInit,
+  verifyPayment,
+} from "@/api/ordersApi";
 import { IpaymentVerify, OrderPayload } from "@/@types/order";
 
 export const useUserOrders = () => {
@@ -19,6 +24,12 @@ export function useCreateOrder() {
     },
   });
 }
+
+export const useLiqpayInit = () => {
+  return useMutation({
+    mutationFn: (orderId: string) => liqpayInit(orderId),
+  });
+};
 
 export function useVerifyPayment() {
   const queryClient = useQueryClient();

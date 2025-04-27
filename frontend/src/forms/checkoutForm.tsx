@@ -11,7 +11,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { useUserProfile } from "@/hooks/useAuth";
 import { Input } from "@/components/ui/input";
-import { useCreateOrder } from "@/hooks/useOrders";
+import { useCreateOrder, useLiqpayInit } from "@/hooks/useOrders";
 import Script from "next/script";
 import { API_URL } from "@/api/base";
 import { IextrasOptions } from "@/@types/product";
@@ -65,6 +65,7 @@ const CheckoutForm: React.FC = () => {
   const { data: user } = useUserProfile();
   const { toastSuccess } = useToastify();
   const { mutate: clearCart, isPending } = useClearCart();
+  const { mutate: liqpayInit, isPending: isLiqpayPending } = useLiqpayInit();
   const { mutate: createOrder, isPending: createOrderLoading } =
     useCreateOrder();
 
@@ -181,11 +182,11 @@ const CheckoutForm: React.FC = () => {
     createOrder(orderPayload, {
       onSuccess: (newOrder) => {
         if (formData.paymentType === "card") {
-          fetch(API_URL + `/api/orders/liqpay-init/${newOrder.id}/`)
-            .then((res) => res.json())
-            .then(({ data, signature }) => {
+          liqpayInit(newOrder.id, {
+            onSuccess: ({ data, signature }) => {
               setLiqPayData({ data, signature });
-            });
+            },
+          });
         } else {
           toastSuccess("Order created successfully!");
           router.push(LinkTo.home); // перенаправляем пользователя на страницу благодарности
@@ -468,7 +469,7 @@ const CheckoutForm: React.FC = () => {
               </div>
               <Button
                 isLoading={createOrderLoading}
-                disabled={createOrderLoading || isUpdating}
+                disabled={createOrderLoading || isUpdating || isLiqpayPending}
                 type="submit"
                 className={`mt-6 w-full ${
                   paymentType === "card" && "bg-green-400"
