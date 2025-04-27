@@ -31,9 +31,9 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 AUTH_USER_MODEL = "accounts.AppUser"
 
-SECURE_HSTS_INCLUDE_SUBDOMAINS = os.getenv('SECURE_HSTS_INCLUDE_SUBDOMAINS')
-SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT') if not DEBUG else True
-SECURE_HSTS_PRELOAD = os.getenv('SECURE_HSTS_PRELOAD') if not DEBUG else True
+SECURE_HSTS_INCLUDE_SUBDOMAINS = os.getenv('SECURE_HSTS_INCLUDE_SUBDOMAINS') if not DEBUG else False
+SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT') if not DEBUG else False
+SECURE_HSTS_PRELOAD = os.getenv('SECURE_HSTS_PRELOAD') if not DEBUG else False
 SECURE_HSTS_SECONDS = 3600 
 
 
@@ -175,17 +175,14 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
-#CORS_ALLOWED_ORIGINS = 
-CORS_ALLOW_ALL_ORIGINS = True
-
-#[
-#    "http://localhost:3000",
-#    "http://127.0.0.1:3000",
-#    "http://localhost:8000",
-#    "http://127.0.0.1:8000",
-#    "https://next-pizza-production.up.railway.app",
-#    "https://next-pizza-lilac-five.vercel.app"
-#]
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "https://next-pizza-production.up.railway.app",
+    "https://next-pizza-lilac-five.vercel.app"
+]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
@@ -206,8 +203,8 @@ CORS_ALLOW_METHODS = (
 CORS_ALLOW_CREDENTIALS = True
 
 # Измените эти значения
-CSRF_COOKIE_SECURE = os.getenv('CSRF_COOKIE_SECURE') if DEBUG else False # Для HTTP разработки
-SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE") if DEBUG else False  # Для HTTP разработки
+CSRF_COOKIE_SECURE =  os.getenv('CSRF_COOKIE_SECURE') if not DEBUG else False # Для HTTP разработки
+SESSION_COOKIE_SECURE =  os.getenv("SESSION_COOKIE_SECURE") if not DEBUG else False  # Для HTTP разработки
 CSRF_COOKIE_SAMESITE = os.getenv('CSRF_COOKIE_SAMESITE')  # Или 'None' если используете Cross-Site
 SESSION_COOKIE_SAMESITE = os.getenv('SESSION_COOKIE_SAMESITE')
 

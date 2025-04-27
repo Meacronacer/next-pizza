@@ -1,4 +1,3 @@
-# accounts/authentication.py
 from django.conf              import settings
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.middleware.csrf   import CsrfViewMiddleware

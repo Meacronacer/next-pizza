@@ -1,6 +1,5 @@
 from django.conf import settings
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from django.core.mail import send_mail
@@ -22,16 +21,15 @@ from .confirmEmail import send_confirmation_email, verify_confirmation_token
 from .models import AppUser 
 from .authentication import CookieJWTAuthentication
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view
+from rest_framework.permissions import AllowAny
 import requests
-
-
 
 User = get_user_model()
 
 @api_view(['GET'])
 @authentication_classes([CookieJWTAuthentication])
-@permission_classes([IsAuthenticated])   # ← обязательная проверка
+@permission_classes([AllowAny])
 def get_profile(request):
     # Попытка извлечь токен из cookies; имя ключа можно задать по своему усмотрению
     token = request.COOKIES.get("access_token")

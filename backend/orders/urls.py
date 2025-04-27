@@ -1,6 +1,11 @@
-# orders/urls.py
 from django.urls import path
-from .views import CreateOrderView, LiqPayCallbackView, LiqPayInitView, PaymentSuccessView, UserOrdersView
+from .views import (
+    CreateOrderView,
+    LiqPayCallbackView,
+    LiqPayInitView,
+    PaymentSuccessView,
+    UserOrdersView,
+)
 
 urlpatterns = [
     path('create/', CreateOrderView.as_view(), name='order-create'),

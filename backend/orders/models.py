@@ -1,8 +1,7 @@
 from django.utils import timezone
 import uuid
 from django.db import models
-from django.conf import settings  # для ссылки на AUTH_USER_MODEL
-from products.models import Product, ProductVariant, ExtraOption
+from django.conf import settings 
 from auditlog.models import AuditlogHistoryField
 from auditlog.registry import auditlog
 

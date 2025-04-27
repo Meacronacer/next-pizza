@@ -9,13 +9,13 @@ from django.utils.decorators import method_decorator
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Order, OrderItem
+from .models import Order
 from rest_framework.permissions import IsAuthenticated
 from .serializers import OrderCreateSerializer, OrderSerializer
 from .payment import generate_liqpay_data, generate_liqpay_signature
 from products.models import Product
 from accounts.authentication import CookieJWTAuthentication
-from django.db.models import Prefetch
+
 
 class UserOrdersView(APIView):
     authentication_classes = [CookieJWTAuthentication]
