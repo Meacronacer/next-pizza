@@ -2,10 +2,10 @@ import { Dispatch, SetStateAction } from "react";
 import ProductItem from "./productItem";
 import SkeletonProductItem from "@/skeletons/skeletonProductItem";
 import { Iproduct } from "@/@types/product";
-import { useProducts } from "@/api/productsApi";
 
 import React from "react";
 import { disableScroll } from "@/utils/scrollbar";
+import { useProducts } from "@/hooks/useProducts";
 
 export interface IproductListProps {
   setProduct: Dispatch<SetStateAction<Iproduct | null>>;

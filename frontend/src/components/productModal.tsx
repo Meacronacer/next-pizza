@@ -1,11 +1,11 @@
 import { IextrasOptions, Iproduct, IproductDetails } from "@/@types/product";
-import { useProductDetail } from "@/api/productsApi";
 import { useAddToCart, useEditCartItem } from "@/hooks/useCart";
 import React, { useEffect, useState } from "react";
 import ExtraOptionItem from "./extraOptionItem";
 import Image from "next/image";
 import { enableScroll } from "@/utils/scrollbar";
 import { IcartItem } from "@/@types/cart";
+import { useProductDetail } from "@/hooks/useProducts";
 
 interface ModalProps {
   product: Iproduct | IcartItem | null;

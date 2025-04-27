@@ -29,7 +29,7 @@ export async function createOrder(payload: OrderPayload) {
 }
 
 export async function verifyPayment({ orderId, token }: IpaymentVerify) {
-  const res = await fetch(`${API_URL}/api/orders/${orderId}?token=${token}`, {
+  const res = await fetch(`${API_URL}/api/orders/${orderId}?token=${token}/`, {
     credentials: "include",
   });
   if (!res.ok) {
