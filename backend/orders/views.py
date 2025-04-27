@@ -1,6 +1,6 @@
-# orders/views.py
-import base64
 import json
+import base64
+from django.conf import settings
 from django.shortcuts import get_object_or_404, redirect
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.utils import timezone
@@ -15,6 +15,9 @@ from .serializers import OrderCreateSerializer, OrderSerializer
 from .payment import generate_liqpay_data, generate_liqpay_signature
 from products.models import Product
 from accounts.authentication import CookieJWTAuthentication
+
+import logging
+logger = logging.getLogger(__name__)
 
 
 class UserOrdersView(APIView):
@@ -85,12 +88,13 @@ class LiqPayCallbackView(APIView):
     We then finalize the Order in our DB.
     """
     def post(self, request):
-        print('we are in LiqPayCallbackView')
-        data      = request.POST.get("data")
-        signature = request.POST.get("signature")
+        logger.info("LiqPay callback hit. data=%s, signature=%s", request.data, request.META)
+        data      = request.data.get("data")
+        signature = request.data.get("signature")
 
         # verify
         if generate_liqpay_signature(data) != signature:
+            logger.warning("Invalid signature for LiqPay callback: %s (expected %s)", signature, generate_liqpay_signature(data))
             return HttpResponseBadRequest("Invalid signature")
 
         payload = json.loads(base64.b64decode(data).decode())
@@ -127,7 +131,7 @@ class PaymentSuccessView(APIView):
 
         # Проверяем срок действия токена
         if order.token_expiration < timezone.now():
-            return redirect('http://localhost:3000/payment-error?reason=token-expired')
+            return redirect(settings.FRONTEND_URL + '/payment-error?reason=token-expired')
 
         # Помечаем токен использованным
         order.is_token_used = True
