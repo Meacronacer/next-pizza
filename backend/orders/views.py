@@ -15,7 +15,6 @@ from .serializers import OrderCreateSerializer, OrderSerializer
 from .payment import generate_liqpay_data, generate_liqpay_signature
 from products.models import Product
 from accounts.authentication import CookieJWTAuthentication
-from rest_framework.parsers import FormParser
 
 import logging
 logger = logging.getLogger(__name__)
@@ -84,8 +83,6 @@ class LiqPayInitView(APIView):
 
 @method_decorator(csrf_exempt, name="dispatch")
 class LiqPayCallbackView(APIView):
-    parser_classes = [FormParser]   # читаем form-данные
-
     """
     LiqPay POSTs here once the charge is confirmed.
     We then finalize the Order in our DB.
