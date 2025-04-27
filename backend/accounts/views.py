@@ -280,17 +280,19 @@ def logout_view(request):
     # Удаляем токены
     response.delete_cookie(
         key='access_token',
-        #domain='.your-backend-domain.com',
+        domain='.next-pizza-production.up.railway.app',
         path='/',
         secure=True,
-        samesite='None'
+        samesite='None',
+        httponly=True,
     )
     response.delete_cookie(
         key='refresh_token',
-        #domain='.your-backend-domain.com',
+        domain='.next-pizza-production.up.railway.app',
         path='/',
         secure=True,
-        samesite='None'
+        samesite='None',
+        httponly=True,
     )
     return response
 
