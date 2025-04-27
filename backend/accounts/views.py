@@ -286,16 +286,12 @@ def logout_view(request):
     response.delete_cookie(
         key='access_token',
         domain='.next-pizza-production.up.railway.app',
-        secure=True,
         samesite='None',
-        httponly=True,
     )
     response.delete_cookie(
         key='refresh_token',
-        domain='.next-pizza-production.up.railway.app',
-        secure=True,
+       domain='.next-pizza-production.up.railway.app',
         samesite='None',
-        httponly=True,
     )
     return response
 
