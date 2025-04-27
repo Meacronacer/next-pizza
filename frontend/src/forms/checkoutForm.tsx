@@ -1,9 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import React, { useEffect } from "react";
-import {
-  useClearCart,
-} from "@/hooks/useCart";
+import { useClearCart } from "@/hooks/useCart";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { LinkTo } from "@/utils/navigations";
@@ -73,6 +71,7 @@ const CheckoutForm: React.FC = () => {
   const {
     items: data,
     isLoading,
+    isUpdating,
     error,
     subtotal,
     tax,
@@ -209,7 +208,12 @@ const CheckoutForm: React.FC = () => {
         {/* Левая колонка */}
         <div className="flex-1 flex flex-col gap-6">
           {/* 1. Cart Section */}
-          <section className="rounded-[30px] p-4 sm:p-6 bg-gray-100 dark:bg-gray-800 w-full shadow-xl">
+          <section className="rounded-[30px] relative p-4 sm:p-6 bg-gray-100 dark:bg-gray-800 w-full shadow-xl">
+            {isUpdating && (
+              <div className="absolute inset-0 bg-black/50 z-10 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent" />
+              </div>
+            )}
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl sm:text-2xl font-bold">1. Cart</h2>
               <button
@@ -421,7 +425,13 @@ const CheckoutForm: React.FC = () => {
             </section>
 
             {/* 5. Order Summary Section */}
-            <section className="rounded-[30px] p-4 sm:p-6 bg-gray-100 dark:bg-gray-800 shadow-xl">
+            <section className="rounded-[30px] relative p-4 sm:p-6 bg-gray-100 dark:bg-gray-800 shadow-xl">
+              {isUpdating && (
+                <div className="absolute inset-0 bg-black/50 z-10 flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent" />
+                </div>
+              )}
+
               <h2 className="text-xl sm:text-2xl font-bold mb-4">
                 Order Summary
               </h2>
@@ -458,7 +468,7 @@ const CheckoutForm: React.FC = () => {
               </div>
               <Button
                 isLoading={createOrderLoading}
-                disabled={createOrderLoading}
+                disabled={createOrderLoading || isUpdating}
                 type="submit"
                 className={`mt-6 w-full ${
                   paymentType === "card" && "bg-green-400"
