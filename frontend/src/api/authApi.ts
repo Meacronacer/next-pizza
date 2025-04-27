@@ -32,7 +32,9 @@ export async function registerUser(
   });
   if (!res.ok) {
     const errorData = await res.json();
-    throw new Error(errorData.error || "Registration failed");
+    throw new Error(
+      errorData?.detail || errorData?.error || "Registration failed"
+    );
   }
   return res.json();
 }
@@ -46,7 +48,7 @@ export async function loginUser(payload: IloginForm): Promise<ILoginResponse> {
   });
   if (!res.ok) {
     const errorData = await res.json();
-    throw new Error(errorData.error || "Login failed");
+    throw new Error(errorData?.detail || errorData?.error || "Login failed");
   }
   return res.json();
 }
@@ -61,7 +63,7 @@ export async function loginUserWithGoogle(token: string) {
 
   if (!res.ok) {
     const errorData = await res.json();
-    throw new Error(errorData.error || "Login failed");
+    throw new Error(errorData?.detail || errorData?.error || "Login failed");
   }
 
   return res.json();
@@ -78,7 +80,10 @@ export async function requestPasswordReset(payload: {
   if (!res.ok) {
     const errorData = await res.json();
     throw new Error(
-      errorData?.email || errorData.error || "Password reset request failed"
+      errorData?.email ||
+        errorData?.detail ||
+        errorData?.error ||
+        "Password reset request failed"
     );
   }
   return res.json();
