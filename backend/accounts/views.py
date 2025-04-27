@@ -140,6 +140,7 @@ class GoogleLoginView(APIView):
             key='access_token',
             value=str(refresh.access_token),
             httponly=True,
+            domain='.next-pizza-production.up.railway.app',
             secure=True,            # обязательно для SameSite=None
             samesite='None',          # разрешить кросс‑доменную отправку
             max_age=60 * 60 * 24 * 7,
@@ -148,6 +149,7 @@ class GoogleLoginView(APIView):
         response.set_cookie(
             key='refresh_token',
             value=str(refresh),
+            domain='.next-pizza-production.up.railway.app',
             httponly=True,
             secure=True,            # обязательно для SameSite=None
             samesite='None',          # разрешить кросс‑доменную отправку
@@ -171,6 +173,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             response.set_cookie(
                 key='access_token',
                 value=response.data['access'],
+                domain='.next-pizza-production.up.railway.app',
                 httponly=True,
                 secure=True,            # обязательно для SameSite=None
                 max_age=60 * 60 * 24 * 7,
@@ -180,6 +183,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             response.set_cookie(
                 key='refresh_token',
                 value=response.data['refresh'],
+                domain='.next-pizza-production.up.railway.app',
                 httponly=True,
                 secure=True,            # обязательно для SameSite=None
                 max_age=60 * 60 * 24 * 7,  # 7 дней
@@ -218,6 +222,7 @@ class CustomTokenRefreshView(TokenRefreshView):
             response.set_cookie(
                 key='access_token',
                 value=data.get('access'),
+                domain='.next-pizza-production.up.railway.app',
                 httponly=True,
                 secure=True,            # обязательно для SameSite=None
                 samesite='None',          # разрешить кросс‑доменную отправку
