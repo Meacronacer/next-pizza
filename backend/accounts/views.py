@@ -16,6 +16,7 @@ from .serializers import (
     PasswordResetRequestSerializer,
     PasswordResetConfirmSerializer,
     GoogleAuthSerializer,
+    VerifiedTokenObtainPairSerializer
 )
 from .confirmEmail import send_confirmation_email, verify_confirmation_token
 from .models import AppUser 
@@ -161,6 +162,8 @@ class GoogleLoginView(APIView):
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = VerifiedTokenObtainPairSerializer
+
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
         

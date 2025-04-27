@@ -1,9 +1,9 @@
-from rest_framework import serializers
 from .models import AppUser
 from django.contrib.auth import get_user_model
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework import serializers
 
 User = get_user_model()
@@ -50,3 +50,14 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
 
 class GoogleAuthSerializer(serializers.Serializer):
     token = serializers.CharField(required=True)
+
+class VerifiedTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        # self.user теперь — аутентифицированный пользователь
+        if not self.user.is_verified:
+            # можно также отправить новый письменно заявку на верификацию
+            raise serializers.ValidationError({
+                'detail': "Please verify your account via email. A verification link email was sent earlier."
+            }, code='unverified')
+        return data
