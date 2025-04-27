@@ -278,7 +278,19 @@ def logout_view(request):
     """
     response = Response({"message": "Logged out successfully."}, status=status.HTTP_200_OK)
     # Удаляем токены
-    response.delete_cookie('access_token')
-    response.delete_cookie('refresh_token')
+    response.delete_cookie(
+        key='access_token',
+        #domain='.your-backend-domain.com',
+        path='/',
+        secure=True,
+        samesite='None'
+    )
+    response.delete_cookie(
+        key='refresh_token',
+        #domain='.your-backend-domain.com',
+        path='/',
+        secure=True,
+        samesite='None'
+    )
     return response
 
