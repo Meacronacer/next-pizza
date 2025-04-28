@@ -1,5 +1,4 @@
 "use client";
-import * as yup from "yup";
 import { Button } from "@/components/ui/button";
 import React, { useEffect } from "react";
 import { useClearCart } from "@/hooks/useCart";
@@ -7,6 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { LinkTo } from "@/utils/navigations";
 import SkeletonCheckoutPage from "@/skeletons/skeletoCheckoutPage";
+import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Controller, SubmitHandler, useForm } from "react-hook-form";
 import { useUserProfile } from "@/hooks/useAuth";
