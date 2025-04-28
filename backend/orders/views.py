@@ -15,7 +15,7 @@ from .serializers import OrderCreateSerializer, OrderSerializer
 from .payment import generate_liqpay_data, generate_liqpay_signature
 from products.models import Product
 from accounts.authentication import CookieJWTAuthentication
-from django.contrib.sessions.models import Session
+from django.contrib.sessions.backends.db import SessionStore
 
 import logging
 logger = logging.getLogger(__name__)
@@ -59,7 +59,7 @@ class CreateOrderView(APIView):
         if order.payment_type == 'card':
             # гарантированно сохраняем сессию, чтобы сгенерировать ключ
             if not request.session.session_key:
-                request.session.save()
+                request.session.create()
 
             # теперь session_key точно существует
             order.session_key = request.session.session_key
@@ -109,8 +109,15 @@ class LiqPayCallbackView(APIView):
             order.payment_date      = timezone.now()
             order.save()
             
+                        # Очищаем корзину в сессии
             if order.session_key:
-                Session.objects.filter(session_key=order.session_key).delete()
+                try:
+                    session = SessionStore(session_key=order.session_key)
+                    if 'cart' in session:
+                        del session['cart']
+                        session.save()
+                except:
+                    pass
 
         return HttpResponse("all good")
 
