@@ -1,10 +1,12 @@
+import uuid
+import json
 import base64
 import hashlib
-import json
 from django.conf import settings
 
 def generate_liqpay_data(order):
     data = {
+        "order_id": f"{order.pk}-{uuid.uuid4()}",
         "action": "pay",
         "amount": str(order.final_total),
         "currency": "USD",
