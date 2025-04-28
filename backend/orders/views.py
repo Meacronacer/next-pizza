@@ -15,6 +15,7 @@ from .serializers import OrderCreateSerializer, OrderSerializer
 from .payment import generate_liqpay_data, generate_liqpay_signature
 from products.models import Product
 from accounts.authentication import CookieJWTAuthentication
+from django.contrib.sessions.models import Session
 
 import logging
 logger = logging.getLogger(__name__)
@@ -62,6 +63,7 @@ class CreateOrderView(APIView):
         else:
             # картой: помечаем как ожидающий оплату
             order.status = 'pending'
+            order.session_key = request.session.session_key  
             order.save()
 
         # возвращаем полный объект с id
@@ -103,7 +105,7 @@ class LiqPayCallbackView(APIView):
             order.payment_date      = timezone.now()
             order.save()
             try:
-                del request.session["cart"]
+                Session.objects.filter(session_key=order.session_key).delete()
             except KeyError:
                 pass
 
