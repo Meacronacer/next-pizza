@@ -56,14 +56,18 @@ class CreateOrderView(APIView):
         serializer.is_valid(raise_exception=True)
         order = serializer.save()
 
-        if order.payment_type == 'cash':
-            # наличными: можно сразу очистить корзину
-            request.session.pop('cart', None)
-            # статус остаётся new — считаем его предоплаченным при получении
-        else:
-            # картой: помечаем как ожидающий оплату
+        if order.payment_type == 'card':
+            # гарантированно сохраняем сессию, чтобы сгенерировать ключ
+            if not request.session.session_key:
+                request.session.save()
+
+            # теперь session_key точно существует
+            order.session_key = request.session.session_key
             order.status = 'pending'
-            order.session_key = request.session.session_key  
+            order.save()
+        else:
+            # оплата наличными — можно сразу очистить корзину
+            request.session.pop('cart', None)
             order.save()
 
         # возвращаем полный объект с id
@@ -104,10 +108,9 @@ class LiqPayCallbackView(APIView):
             order.liqpay_payment_id = payload.get("payment_id")
             order.payment_date      = timezone.now()
             order.save()
-            try:
+            
+            if order.session_key:
                 Session.objects.filter(session_key=order.session_key).delete()
-            except KeyError:
-                pass
 
         return HttpResponse("all good")
 
