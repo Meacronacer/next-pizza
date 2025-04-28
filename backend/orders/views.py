@@ -111,11 +111,18 @@ class LiqPayCallbackView(APIView):
             order.payment_date      = timezone.now()
             order.save()
 
-            logger.info("Заказ %s успешно оплачен, checking order.session", order.session_key)
-               # наконец — удаляем запись о сессии
+            logger.info("before session check")
+            # Если у заказа есть session_key — удаляем запись из django_session
             if order.session_key:
-                Session.objects.filter(session_key=order.session_key).delete()
-                logger.info("Сессия %s удалена после успешного платежа", order.session_key)
+                deleted, _ = Session.objects.filter(
+                    session_key=order.session_key
+                ).delete()
+                logger.info(
+                    "После оплаты LiqPay удалено %d сессий с ключом %s",
+                    deleted,
+                    order.session_key
+                )
+            logger.info("after session check")
 
         return HttpResponse("all good")
 

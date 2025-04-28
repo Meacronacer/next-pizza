@@ -27,6 +27,13 @@ class Order(models.Model):
         null=True, blank=True,
         related_name='orders'
     )
+    session_key = models.CharField(
+        max_length=60,    # подойдёт длина стандартных ключей Django — 32–40 символов
+        null=True,
+        blank=True,
+        help_text="Ключ сессии пользователя, чтобы потом очищать корзину"
+    )
+
     first_name = models.CharField(max_length=50)
     second_name = models.CharField(max_length=50)
     email = models.EmailField()
