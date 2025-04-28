@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useVerifyPayment } from "@/hooks/useOrders";
 import { OrderDetails } from "@/@types/order";
+import { IextrasOptions } from "@/@types/product";
 
 export default function PaymentSuccessPageClient() {
   const searchParams = useSearchParams();
@@ -137,20 +138,22 @@ export default function PaymentSuccessPageClient() {
         </div>
 
         {/* Items List */}
+        {/* Items List */}
         <div className="mb-12">
           <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
             Items in Your Order
           </h3>
-          <div className="space-y-4">
+          <div className="space-y-6">
             {order.items.map((item) => (
               <div
                 key={item.id}
-                className="flex items-center justify-between bg-white dark:bg-gray-800 p-4 rounded-lg shadow dark:shadow-gray-700/30 transition-colors"
+                className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow dark:shadow-gray-700/30 transition-colors"
               >
-                <div className="flex items-center space-x-4">
-                  {item?.img_url ? (
+                <div className="flex items-start space-x-4">
+                  {/* Основная картинка товара */}
+                  {item.img_url ? (
                     <Image
-                      src={item?.img_url}
+                      src={item.img_url}
                       alt={item.product_name}
                       width={64}
                       height={64}
@@ -159,18 +162,61 @@ export default function PaymentSuccessPageClient() {
                   ) : (
                     <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-md" />
                   )}
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-gray-100">
-                      {item.product_name}
-                    </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Qty: {item.quantity}
-                    </p>
+
+                  <div className="flex-1">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-gray-100">
+                          {item?.product_name}
+                        </p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          Qty: {item?.quantity}
+                        </p>
+                      </div>
+                      <p className="font-semibold text-gray-900 dark:text-gray-100">
+                        ${parseFloat(item?.subtotal).toFixed(2)}
+                      </p>
+                    </div>
+
+                    {/* Секция с Extras */}
+                    {item.extras && item.extras.length > 0 && (
+                      <div className="mt-4">
+                        <p className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                          Extras:
+                        </p>
+                        <ul className="space-y-2">
+                          {item.extras.map((extra: IextrasOptions) => (
+                            <li
+                              key={extra.id}
+                              className="flex items-center space-x-3"
+                            >
+                              {/* Картинка опции */}
+                              {extra?.img_url ? (
+                                <Image
+                                  src={extra?.img_url}
+                                  alt={extra?.name}
+                                  width={32}
+                                  height={32}
+                                  className="rounded-sm object-cover"
+                                />
+                              ) : (
+                                <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-sm" />
+                              )}
+                              <div>
+                                <p className="text-sm text-gray-800 dark:text-gray-200">
+                                  {extra?.name}
+                                </p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                  +${extra?.price?.toFixed(2)}
+                                </p>
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
                 </div>
-                <p className="font-semibold text-gray-900 dark:text-gray-100">
-                  ${parseFloat(item.subtotal).toFixed(2)}
-                </p>
               </div>
             ))}
           </div>
