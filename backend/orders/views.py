@@ -102,6 +102,10 @@ class LiqPayCallbackView(APIView):
             order.liqpay_payment_id = payload.get("payment_id")
             order.payment_date      = timezone.now()
             order.save()
+            try:
+                del request.session["cart"]
+            except KeyError:
+                pass
 
         return HttpResponse("all good")
 

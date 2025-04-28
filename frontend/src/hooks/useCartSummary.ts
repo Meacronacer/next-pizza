@@ -17,7 +17,6 @@ export function useCartSummary() {
   const total = subtotal + tax + DELIVERY_FEE;
 
   const changeQuantity = (key: string, qty: number) => {
-    if (qty < 1) return;
     updateQty({ item_key: key, quantity: qty });
   };
 
