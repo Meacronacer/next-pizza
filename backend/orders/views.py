@@ -152,7 +152,7 @@ class PaymentSuccessView(APIView):
             # Пытаемся достать объект Product, чтобы получить его изображение
             try:
                 product = Product.objects.get(pk=item.product_id)
-                image_url = request.build_absolute_uri(product.image_url)
+                image_url = request.build_absolute_uri(product.img_url)
             except (Product.DoesNotExist, ValueError, AttributeError):
                 image_url = None
 
