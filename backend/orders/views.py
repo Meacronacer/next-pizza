@@ -111,7 +111,7 @@ class LiqPayCallbackView(APIView):
             order.payment_date      = timezone.now()
             order.save()
 
-            logger.info("Заказ %s успешно оплачен, checking order.session", order.sesion_key)
+            logger.info("Заказ %s успешно оплачен, checking order.session", order.session_key)
                # наконец — удаляем запись о сессии
             if order.session_key:
                 Session.objects.filter(session_key=order.session_key).delete()
