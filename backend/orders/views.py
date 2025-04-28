@@ -16,6 +16,7 @@ from .payment import generate_liqpay_data, generate_liqpay_signature
 from products.models import Product
 from accounts.authentication import CookieJWTAuthentication
 from django.contrib.sessions.backends.db import SessionStore
+from django.contrib.sessions.models import Session
 
 import logging
 logger = logging.getLogger(__name__)
@@ -109,6 +110,13 @@ class LiqPayCallbackView(APIView):
             order.liqpay_payment_id = payload.get("payment_id")
             order.payment_date      = timezone.now()
             order.save()
+
+            logger.info("Заказ %s успешно оплачен, checking order.session", order.sesion_key)
+               # наконец — удаляем запись о сессии
+            if order.session_key:
+                Session.objects.filter(session_key=order.session_key).delete()
+                logger.info("Сессия %s удалена после успешного платежа", order.session_key)
+
         return HttpResponse("all good")
 
 
