@@ -108,18 +108,20 @@ class LiqPayCallbackView(APIView):
             order.card_type         = payload.get("card_type")
             order.liqpay_payment_id = payload.get("payment_id")
             order.payment_date      = timezone.now()
-            order.save()
-            
-                        # Очищаем корзину в сессии
-            if order.session_key:
-                try:
-                    session = SessionStore(session_key=order.session_key)
-                    if 'cart' in session:
-                        del session['cart']
-                        session.save()
-                except:
-                    pass
 
+            try:
+                logger.info("sesion id= ", order.session_key)
+                print("session id= ", order.session_key)
+                session = SessionStore(session_key=order.session_key)
+                if 'cart' in session:
+                    del session['cart']
+                    session.save()
+            except:
+                logger.info("sesion id= ", order.session_key)
+                print("session id= ", order.session_key)
+                
+
+            order.save()
         return HttpResponse("all good")
 
 
