@@ -132,7 +132,6 @@ class LiqPayCallbackView(APIView):
 class PaymentSuccessView(APIView):
     """
     Подтверждение успешного платежа.
-    GET /api/orders/payment-success/<order_id>/?token=<token>
     """
     def get(self, request, token):
         order = get_object_or_404(Order, success_token=token)

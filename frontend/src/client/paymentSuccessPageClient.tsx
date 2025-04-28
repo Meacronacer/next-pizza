@@ -16,17 +16,13 @@ export default function PaymentSuccessPageClient() {
 
   useEffect(() => {
     const fetchOrderDetails = async () => {
-      const orderId = searchParams.get("order_id");
       const token = searchParams.get("token");
       try {
-        if (!orderId || !token) {
+        if (!token) {
           throw new Error("Invalid payment confirmation");
         }
 
-        verifyPayment(
-          { orderId, token },
-          { onSuccess: (data) => setOrder(data) }
-        );
+        verifyPayment(token, { onSuccess: (data) => setOrder(data) });
       } catch (err) {
         setError(err instanceof Error ? err.message : "Unknown error");
       } finally {

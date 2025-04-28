@@ -5,7 +5,7 @@ import {
   liqpayInit,
   verifyPayment,
 } from "@/api/ordersApi";
-import { IpaymentVerify, OrderPayload } from "@/@types/order";
+import { OrderPayload } from "@/@types/order";
 
 export const useUserOrders = () => {
   return useQuery({
@@ -34,7 +34,7 @@ export const useLiqpayInit = () => {
 export function useVerifyPayment() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (payload: IpaymentVerify) => verifyPayment(payload),
+    mutationFn: (token: string) => verifyPayment(token),
     onSuccess: () => {
       // Если необходимо, можно очистить корзину или обновить другие запросы
       queryClient.invalidateQueries({ queryKey: ["cart"] });

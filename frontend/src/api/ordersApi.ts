@@ -1,4 +1,4 @@
-import { OrderPayload, IpaymentVerify } from "@/@types/order";
+import { OrderPayload } from "@/@types/order";
 import { API_URL, customFetch } from "./base";
 
 export async function fetchUserOrders() {
@@ -45,7 +45,7 @@ export async function liqpayInit(orderId: string) {
   return res.json();
 }
 
-export async function verifyPayment({ orderId, token }: IpaymentVerify) {
+export async function verifyPayment(token: string) {
   const res = await fetch(`${API_URL}/api/orders/verify/${token}/`, {
     method: "GET",
     credentials: "include",

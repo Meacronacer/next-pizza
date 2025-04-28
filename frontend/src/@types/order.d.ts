@@ -1,8 +1,3 @@
-export interface IpaymentVerify {
-  orderId: string;
-  token: string;
-}
-
 export interface OrderItemPayload {
   product_id: number;
   product_name: string;

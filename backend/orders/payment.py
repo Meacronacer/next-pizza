@@ -1,4 +1,3 @@
-import uuid
 import json
 import base64
 import hashlib
@@ -14,7 +13,7 @@ def generate_liqpay_data(order):
         "version": "3",
         "public_key": settings.LIQPAY_PUBLIC_KEY,
         "server_url": settings.LIQPAY_CALLBACK_URL,  # URL для уведомлений
-        "result_url": f"{settings.LIQPAY_RESULT_URL.format(order_id=order.id, token=order.success_token)}", 
+        "result_url": f"{settings.CLIENT_URL}/api/orders/verify/{order.success_token}/",
         "sandbox":     "1", 
     }
     json_data = json.dumps(data)
