@@ -67,9 +67,10 @@ class CreateOrderView(APIView):
         else:
             # оплата наличными — можно сразу очистить корзину
             request.session.pop('cart', None)
-
+            
         
         order.save()
+
         # возвращаем полный объект с id
         out_ser = OrderSerializer(order)
         return Response(out_ser.data, status=status.HTTP_201_CREATED)
@@ -108,11 +109,6 @@ class LiqPayCallbackView(APIView):
             order.liqpay_payment_id = payload.get("payment_id")
             order.payment_date      = timezone.now()
             order.save()
-
-            request.session.pop('cart', None)
-            print('session key = ',  order.session_key)
-            logger.info('session key = ',  order.session_key)
-
             
                         # Очищаем корзину в сессии
             if order.session_key:
