@@ -134,25 +134,18 @@ class PaymentSuccessView(APIView):
     Подтверждение успешного платежа.
     GET /api/orders/payment-success/<order_id>/?token=<token>
     """
-    def get(self, request, order_id):
-        token = request.GET.get('token')
-        order = get_object_or_404(
-            Order,
-            pk=order_id,
-            success_token=token,
-            is_token_used=False,
-        )
+    def get(self, request, token):
+        order = get_object_or_404(Order, success_token=token)
 
         # Проверяем срок действия токена
         if order.token_expiration < timezone.now():
             return redirect(settings.FRONTEND_URL + '/payment-error?reason=token-expired')
 
         # Помечаем токен использованным
-        order.is_token_used = True
-        order.save()
-
-        # Очищаем корзину
-        request.session.pop('cart', None)
+           # Если ещё не отмечен — помечаем
+        if not order.is_token_used:
+            order.is_token_used = True
+            order.save()
 
         # Собираем список позиций с картинками
         items_data = []

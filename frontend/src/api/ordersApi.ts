@@ -46,7 +46,7 @@ export async function liqpayInit(orderId: string) {
 }
 
 export async function verifyPayment({ orderId, token }: IpaymentVerify) {
-  const res = await fetch(`${API_URL}/api/orders/${orderId}?token=${token}/`, {
+  const res = await fetch(`${API_URL}/api/orders/verify/${token}/`, {
     method: "GET",
     credentials: "include",
     headers: {
