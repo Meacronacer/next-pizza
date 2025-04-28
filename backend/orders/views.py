@@ -83,25 +83,19 @@ class LiqPayInitView(APIView):
 
 @method_decorator(csrf_exempt, name="dispatch")
 class LiqPayCallbackView(APIView):
-    """
-    LiqPay POSTs here once the charge is confirmed.
-    We then finalize the Order in our DB.
-    """
     def post(self, request):
-        logger.info("LiqPay callback hit. data=%s, signature=%s", request.data, request.META)
         data      = request.data.get("data")
         signature = request.data.get("signature")
-        # verify
+        # проверяем подпись
         if generate_liqpay_signature(data) != signature:
-            logger.warning("Invalid signature for LiqPay callback: %s (expected %s)", signature, generate_liqpay_signature(data))
             return HttpResponseBadRequest("Invalid signature")
-
+        # декодируем и логируем payload
         payload = json.loads(base64.b64decode(data).decode())
-        order   = get_object_or_404(Order, pk=payload['order_id'])
+        logger.info("LiqPay payload: %s", payload)
 
-        print('checking if status == success ')
-        if payload.get("status") == "success":
-            print('we are in status == seccess')
+        order = get_object_or_404(Order, pk=payload["order_id"])
+        # учитываем песочницу
+        if payload.get("status") in ("success", "sandbox"):
             order.status            = "completed"
             order.card_mask         = payload.get("masked_card")
             order.card_type         = payload.get("card_type")
@@ -109,8 +103,8 @@ class LiqPayCallbackView(APIView):
             order.payment_date      = timezone.now()
             order.save()
 
-
         return HttpResponse("all good")
+
 
 
 

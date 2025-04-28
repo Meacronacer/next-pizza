@@ -6,12 +6,11 @@ from django.conf import settings
 
 def generate_liqpay_data(order):
     data = {
-        "order_id": f"{order.pk}-{uuid.uuid4()}",
+        "order_id": str(order.pk),
         "action": "pay",
         "amount": str(order.final_total),
         "currency": "USD",
         "description": f"Оплата заказа #{order.pk}",
-        "order_id": str(order.pk),
         "version": "3",
         "public_key": settings.LIQPAY_PUBLIC_KEY,
         "server_url": settings.LIQPAY_CALLBACK_URL,  # URL для уведомлений
