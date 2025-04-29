@@ -44,9 +44,7 @@ const ProductItem: React.FC<props> = ({ product, setProduct }) => {
           className="text-lg cursor-pointer  text-gray-800 dark:text-gray-100"
         >
           from{" "}
-          <strong className="text-green-400">
-            ${product?.price_from?.toFixed(2)}
-          </strong>
+          <strong className="text-green-400">${product?.price_from}</strong>
         </span>
         <button
           onClick={setProduct}
