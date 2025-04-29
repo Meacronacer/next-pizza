@@ -37,7 +37,11 @@ class Product(models.Model):
 
 
     name = models.CharField(max_length=50)
-    product_type = models.CharField(max_length=50, choices=PRODUCT_TYPE_CHOICES)
+    product_type = models.CharField(
+        max_length=50,
+        choices=PRODUCT_TYPE_CHOICES,
+        db_index=True  # индекс ускорит любые запросы по этому полю
+    )
     img_url = models.URLField()
     rating = models.PositiveSmallIntegerField(choices=RATING_CHOICES, default=4)
     description = models.TextField(max_length=500, blank=True)

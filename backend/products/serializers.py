@@ -21,7 +21,6 @@ class ProductSerializerCrop(serializers.ModelSerializer):
 
 # Основной сериализатор продукта, как у вас
 class ProductSerializer(serializers.ModelSerializer):
-    price_from = serializers.SerializerMethodField()
 
     class Meta:
         model = Product
@@ -34,29 +33,15 @@ class ProductSerializer(serializers.ModelSerializer):
             'extra_info', 
             'price_from',
         ]
+        read_only_fields = ['price_from']
 
-    def get_price_from(self, obj):
-        variants = obj.variants.all()
-        if variants.exists():
-            return min(variant.price for variant in variants)
-        return None
 
 # Сериализатор для деталей продукта с вариантами, отсортированными по цене
 class ProductDetailSerializer(ProductSerializer):
-    variants = serializers.SerializerMethodField()
-    extra_options = serializers.SerializerMethodField()
+    variants      = ProductVariantSerializer(many=True, read_only=True)
+    extra_options = ExtraOptionSerializer(many=True, read_only=True)
 
     class Meta(ProductSerializer.Meta):
-        fields = ['variants', 'extra_options']
-
-    
-    def get_extra_options(self, obj):
-        options = obj.extra_options.all()
-        return ExtraOptionSerializer(options, many=True).data
-
-    def get_variants(self, obj):
-        # Получаем все варианты для данного продукта и сортируем их по цене от меньшей к большей
-        variants = obj.variants.all().order_by('price')
-        return ProductVariantSerializer(variants, many=True).data
+        fields = ProductSerializer.Meta.fields + ['variants', 'extra_options']
 
 
