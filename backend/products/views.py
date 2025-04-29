@@ -1,57 +1,58 @@
 from rest_framework import filters
-from collections import defaultdict
 from rest_framework.response import Response
+from django.db.models import Case, When, Value, IntegerField, Min, Prefetch
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from .models import Product, ProductVariant
 from .serializers import ProductSerializer, ProductDetailSerializer
-from django.db.models import Min, Prefetch
-
 
 
 class ProductListView(ListAPIView):
-    serializer_class = ProductSerializer
-
-    def get_queryset(self):
-        return (
-            Product.objects
-                   .annotate(price_from=Min('variants__price'))
-                   .prefetch_related(
-                       Prefetch('variants', queryset=ProductVariant.objects.order_by('price')),
-                       'extra_options'
-                   )
-                   .only('id','name','product_type','img_url','description','extra_info','price_from')
+    queryset = (
+        Product.objects
+        # Аннотируем минимальную цену сразу
+        .annotate(price_from=Min('variants__price'))
+        # Аннотируем ранг product_type в соответствии с порядком в PRODUCT_TYPE_CHOICES
+        .annotate(
+            type_order=Case(
+                When(product_type=Product.PIZZAS,    then=Value(0)),
+                When(product_type=Product.SNACKS,    then=Value(1)),
+                When(product_type=Product.BEVERAGES, then=Value(2)),
+                When(product_type=Product.COCKTAILS, then=Value(3)),
+                When(product_type=Product.COFFE,     then=Value(4)),
+                When(product_type=Product.DESERTS,   then=Value(5)),
+                When(product_type=Product.SAUCES,    then=Value(6)),
+                output_field=IntegerField(),
+            )
         )
+        # Сортируем по рангам
+        .order_by('type_order')
+    )
+    serializer_class = ProductSerializer
 
     def list(self, request, *args, **kwargs):
-        data = super().list(request, *args, **kwargs)
+        from collections import defaultdict
+        response = super().list(request, *args, **kwargs)
+        data = response.data
         grouped = defaultdict(list)
-        for item in data.data:
-            grouped[item['product_type'].lower()].append(item)
+        for product in data:
+            grouped[product['product_type'].lower()].append(product)
         return Response(grouped)
-
+    
 
 class ProductFlatListView(ListAPIView):
-    """
-    Возвращает простой список всех продуктов (с опциональным search-фильтром).
-    """
-    queryset = Product.objects.all()
+    queryset = Product.objects.annotate(price_from=Min('variants__price'))
     serializer_class = ProductSerializer
-
-    # если вы хотите возможность ?search=…
     filter_backends = [filters.SearchFilter]
-    search_fields   = ['name', 'description']  # добавьте нужные поля
+    search_fields   = ['name', 'description']
 
-# Новое представление для получения деталей конкретного продукта
+
 class ProductDetailView(RetrieveAPIView):
-    serializer_class = ProductDetailSerializer
-
-    def get_queryset(self):
-        return (
-            Product.objects
-                   .annotate(price_from=Min('variants__price'))
-                   .prefetch_related(
-                       Prefetch('variants', queryset=ProductVariant.objects.order_by('price')),
-                       'extra_options'
-                   )
-                   .only('id','name','product_type','img_url','description','extra_info','price_from')
+    queryset = (
+        Product.objects
+        .annotate(price_from=Min('variants__price'))
+        .prefetch_related(
+            Prefetch('variants', queryset=ProductVariant.objects.order_by('price')),
+            'extra_options'
         )
+    )
+    serializer_class = ProductDetailSerializer
