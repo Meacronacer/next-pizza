@@ -44,7 +44,8 @@ SECURE_HSTS_SECONDS = 3600
 ALLOWED_HOSTS = [
     "next-pizza-production.up.railway.app",
     "next-pizza-lilac-five.vercel.app",
-    "localhost"
+    "localhost",
+    "127.0.0.1"
 ]
 
 # Application definition
