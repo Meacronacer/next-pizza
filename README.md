@@ -2,6 +2,8 @@
 
 A full-stack responsive web application for ordering food online. Built with Django REST Framework (JWT + OAuth2 Google, email confirmation, password reset), PostgreSQL, React/Next.js (React Hook Form + Yup validation), LiqPay integration, session-based cart, search, and auto-generated API docs.
 
+[![Demo](https://img.shields.io/badge/Live-Demo-green)](https://next-pizza-lilac-five.vercel.app)
+
 ---
 
 ## 🎯 Features
