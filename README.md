@@ -56,7 +56,7 @@ A full-stack responsive web application for ordering food online. Built with Dja
 
 1. **Clone the repository**  
    ```bash
-   git clone https://github.com/yourusername/next-pizza.git
+   git clone https://github.com/Meacronacer/next-pizza.git
    cd next-pizza
    ```
 
