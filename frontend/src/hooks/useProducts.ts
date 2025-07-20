@@ -6,6 +6,8 @@ export const useProducts = () => {
     queryKey: ["products"],
     queryFn: fetchProducts,
     staleTime: 1000 * 60 * 5, // кешировать данные 5 минут
+    retry: false,
+    refetchOnWindowFocus: false,
   });
 };
 

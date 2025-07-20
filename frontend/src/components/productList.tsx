@@ -18,8 +18,21 @@ const ProductList: React.FC<IproductListProps> = ({
 }) => {
   const { data, isLoading, error } = useProducts();
 
-  if (error) return <p className="py-40">Error loading products.</p>;
-
+  if (error) {
+    return (
+      <div className="py-32 text-center text-gray-700 dark:text-gray-300">
+        <h2 className="text-2xl font-semibold mb-4">
+          🚧 Problem loading products
+        </h2>
+        <p className="text-lg mb-2">
+          It looks like we&apos;re experiencing a temporary server issue.
+        </p>
+        <p className="text-sm text-gray-500">
+          We are already working on fixing the error. Please try again later.{" "}
+        </p>
+      </div>
+    );
+  }
   // Список категорий по умолчанию для скелетонов
   const defaultCategories = [
     "pizzas",
@@ -49,8 +62,10 @@ const ProductList: React.FC<IproductListProps> = ({
           <h2 className="text-2xl font-bold mb-4 capitalize">
             {isLoading ? (
               <div className="w-1/2 h-8 bg-gray-300 dark:bg-gray-700 rounded animate-pulse" />
-            ) : (
+            ) : items?.length > 0 ? (
               category
+            ) : (
+              ""
             )}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

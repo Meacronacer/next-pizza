@@ -15,39 +15,27 @@ RATING_CHOICES = (
     (9, 9),
 )
 
+class ProductType(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+    order = models.PositiveIntegerField(default=0, help_text="Порядок отображения")
+
+    class Meta:
+        ordering = ['order']
+
+    def __str__(self):
+        return self.name
+
 class Product(models.Model):
     # Вы можете добавить сюда и другие типы, если понадобится
-    PIZZAS = 'Pizzas'
-    SNACKS = 'Snacks'
-    BEVERAGES = 'Beverages'
-    COCKTAILS = 'Cocktails'
-    COFFE = 'Coffe'
-    DESERTS = 'Desserts'
-    SAUCES = 'Sauces'
-
-    PRODUCT_TYPE_CHOICES = [
-        (PIZZAS, 'Pizzas'),
-        (SNACKS, 'Snacks'),
-        (BEVERAGES, 'Beverages'),
-        (COCKTAILS, 'Cocktails'),
-        (COFFE, 'Coffe'),
-        (DESERTS, 'Desserts'),
-        (SAUCES, 'Sauces'),
-    ]
-
-
+    product_type = models.ForeignKey(ProductType, on_delete=models.SET_NULL, null=True, blank=True)
     name = models.CharField(max_length=50)
-    product_type = models.CharField(
-        max_length=50,
-        choices=PRODUCT_TYPE_CHOICES,
-        db_index=True  # индекс ускорит любые запросы по этому полю
-    )
     img_url = models.URLField()
     rating = models.PositiveSmallIntegerField(choices=RATING_CHOICES, default=4)
     description = models.TextField(max_length=500, blank=True)
     extra_info = models.CharField(max_length=50, blank=True)
     # Дополнительные опции (например, доп. сыр, оливки и т.д.)
     extra_options = models.ManyToManyField('ExtraOption', blank=True, related_name='products')
+    in_stock = models.BooleanField(default=True)
 
     def __str__(self):
         return f'{self.product_type}: {self.name}'

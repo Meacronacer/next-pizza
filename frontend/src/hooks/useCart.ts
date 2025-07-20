@@ -12,6 +12,7 @@ export function useCart() {
   return useQuery<IcartItem[], Error>({
     queryKey: ["cart"],
     queryFn: fetchCart,
+    refetchOnWindowFocus: false,
   });
 }
 

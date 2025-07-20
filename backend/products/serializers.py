@@ -1,7 +1,12 @@
 # serializers.py
 
 from rest_framework import serializers
-from .models import Product, ProductVariant, ExtraOption, Ingredient
+from .models import Product, ProductVariant, ExtraOption, ProductType
+
+class ProductTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProductType
+        fields = ('id', 'name')
 
 class ExtraOptionSerializer(serializers.ModelSerializer):
     class Meta:
@@ -21,8 +26,13 @@ class ProductSerializerCrop(serializers.ModelSerializer):
 
 # Основной сериализатор продукта, как у вас
 class ProductSerializer(serializers.ModelSerializer):
-    # Теперь это поле уже есть в объекте благодаря .annotate()
     price_from = serializers.DecimalField(max_digits=6, decimal_places=2, read_only=True)
+    product_type = serializers.SerializerMethodField()
+
+    def get_product_type(self, obj):
+        if obj.product_type:
+            return {'name': obj.product_type.name}
+        return None
 
     class Meta:
         model = Product
@@ -34,7 +44,9 @@ class ProductSerializer(serializers.ModelSerializer):
             'description',
             'extra_info',
             'price_from',
+            'in_stock',
         ]
+
 
 # Сериализатор для деталей продукта с вариантами, отсортированными по цене
 class ProductDetailSerializer(ProductSerializer):

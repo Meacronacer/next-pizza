@@ -63,7 +63,7 @@ const CartPanel: React.FC<CartPanelProps> = ({ open, onClose, cartItems }) => {
           }`}
         >
           {cartItems.length === 0 ? (
-            <p className="text-gray-500 py-4 text-center">Ваша корзина пуста</p>
+            <p className="text-gray-500 py-4 text-center">Your cart is empty</p>
           ) : (
             cartItems.map((item) => {
               const basePrice = item.price;

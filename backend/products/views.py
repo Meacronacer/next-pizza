@@ -1,41 +1,44 @@
 from rest_framework import filters
+from collections import OrderedDict
 from rest_framework.response import Response
 from django.db.models import Case, When, Value, IntegerField, Min, Prefetch
 from rest_framework.generics import ListAPIView, RetrieveAPIView
-from .models import Product, ProductVariant
+from .models import Product, ProductVariant, ProductType
 from .serializers import ProductSerializer, ProductDetailSerializer
+from django.core.cache import cache
 
 
 class ProductListView(ListAPIView):
-    queryset = (
-        Product.objects
-        # Аннотируем минимальную цену сразу
-        .annotate(price_from=Min('variants__price'))
-        # Аннотируем ранг product_type в соответствии с порядком в PRODUCT_TYPE_CHOICES
-        .annotate(
-            type_order=Case(
-                When(product_type=Product.PIZZAS,    then=Value(0)),
-                When(product_type=Product.SNACKS,    then=Value(1)),
-                When(product_type=Product.BEVERAGES, then=Value(2)),
-                When(product_type=Product.COCKTAILS, then=Value(3)),
-                When(product_type=Product.COFFE,     then=Value(4)),
-                When(product_type=Product.DESERTS,   then=Value(5)),
-                When(product_type=Product.SAUCES,    then=Value(6)),
-                output_field=IntegerField(),
-            )
-        )
-        # Сортируем по рангам
-        .order_by('type_order')
-    )
     serializer_class = ProductSerializer
 
+    def get_queryset(self):
+        return (
+            Product.objects
+            .annotate(price_from=Min('variants__price'))
+            .select_related('product_type')  # Предотвращает N+1
+        )
+
     def list(self, request, *args, **kwargs):
-        from collections import defaultdict
-        response = super().list(request, *args, **kwargs)
-        data = response.data
-        grouped = defaultdict(list)
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        data = serializer.data
+
+        # ⏱️ Используем кэш на 1 час
+        product_types = cache.get('product_types_ordered')
+        if product_types is None:
+            product_types = list(ProductType.objects.order_by('order').values_list('name', flat=True))
+            cache.set('product_types_ordered', product_types, timeout=3600)  # 1 час
+
+        # Создание групп
+        grouped = OrderedDict((pt.lower(), []) for pt in product_types)
+        uncategorized_key = 'Shared'
+        grouped[uncategorized_key] = []
+
         for product in data:
-            grouped[product['product_type'].lower()].append(product)
+            pt = product.get('product_type')
+            key = pt['name'].lower() if pt and pt.get('name') else uncategorized_key
+            grouped.setdefault(key, []).append(product)
+
         return Response(grouped)
     
 

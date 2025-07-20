@@ -9,6 +9,7 @@ export interface Iproduct {
   price_from: number;
   description: string;
   extra_info?: string;
+  in_stock: boolean;
   extras?: IextrasOptions[];
 }
 
